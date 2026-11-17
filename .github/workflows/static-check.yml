@@ -16,6 +16,8 @@ jobs:
         run: node scripts/test_parsers.js
       - name: Run IndexedDB persistence regression tests
         run: node scripts/test_persistence.js
+      - name: Run audio inspector regression tests
+        run: node scripts/test_audio_inspector.js
       - name: Extract inline JavaScript and check syntax
         run: |
           python3 - <<'PY'
