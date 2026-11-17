@@ -34,8 +34,8 @@ Les boutons **Sauvegarder localement**, **Restaurer** et **Effacer sauvegarde** 
 
 ## Limites essentielles
 - Les paramètres propriétaires des .afsnd/.dnsnd ne sont pas décodés. La préécoute proxy est une approximation, **pas un émulateur**. L'éditeur peut traiter le rendu proxy en audio, mais ne change pas les paramètres du preset natif.
-- L'éditeur travaille sur une copie AudioBuffer en mémoire, limitée à 128 Mio par piste ; l'historique d'annulation est plafonné à 128 Mio.
-- Les modifications de session ne sont pas une sauvegarde permanente : exporter le WAV édité ou créer une copie dans la bibliothèque, puis sauvegarder la bibliothèque locale.
+- L'éditeur travaille sur des copies AudioBuffer en mémoire : 128 Mio maximum par piste, 128 Mio d'historique et 256 Mio cumulés par session. Le bouton **Libérer mémoire** abandonne l'édition non exportée de l'élément courant après confirmation.
+- Les modifications de session ne sont pas une sauvegarde permanente : exporter le WAV édité ou créer une copie dans la bibliothèque, puis sauvegarder la bibliothèque locale. La création d'une copie WAV ajoute le résultat à la bibliothèque et libère le tampon de travail précédent.
 - La référence A est une capture/fichier réel associé ; elle ne constitue pas un décodage du patch propriétaire.
 - Les mesures crête/RMS sont échantillonnées et approximatives ; elles ne remplacent pas une analyse audio hors ligne exhaustive.
 - L'inspection SysEx ne décode que les métadonnées Sound (modèle, slot, nom, tags) ; aucun paramètre de synthèse n'est décodé.
