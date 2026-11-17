@@ -126,7 +126,7 @@ function makeStoredZip(filename, payload) {
   assert.match(html, /src\.connect\(gain\);gain\.connect\(ac\.destination\)/);
   assert.match(html, /E\.waveZoom\.oninput/);
   assert.match(html, /E\.waveOffset\.oninput/);
-    assert.match(html, /async function getAuditionBuffer\\(i\\)/);
+  assert.match(html, /async function getAuditionBuffer\(i\)/);
   assert.match(html, /S\\.auditionMode==='reference'/);
   assert.match(html, /id="auditionA"/);
   assert.match(html, /id="auditionB"/);
