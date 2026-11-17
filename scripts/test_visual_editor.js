@@ -65,7 +65,7 @@ function log() {}
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
 const source = html.slice(start, end) +
-  "\nglobalThis.__visualEditorTest = { ensureVisualEditor, applyEditorGain, applyEditorFade, applyEditorNormalize, applyEditorReverse, applyEditorSilence, applyEditorTrim, applyEditorEnvelope, undoEditor, redoEditor, resetEditor, audioBufferBytes, MAX_EDITOR_BUFFER_BYTES, MAX_EDITOR_HISTORY_BYTES };";
+  "\nglobalThis.__visualEditorTest = { ensureVisualEditor, applyEditorGain, applyEditorFade, applyEditorNormalize, applyEditorReverse, applyEditorSilence, applyEditorTrim, applyEditorEnvelope, undoEditor, redoEditor, resetEditor, audioBufferBytes, MAX_EDITOR_BUFFER_BYTES, MAX_EDITOR_HISTORY_BYTES, MAX_EDITOR_SESSION_BYTES, sessionEditorBytes };";
 const context = {
   S, E, current, editorKey, editorSourceToken, getBaseAuditionBuffer, ctx,
   wave, updateEditorUI, redrawEditor, render, renderDetail, dl, wav,
@@ -159,6 +159,16 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   assert.equal(api.audioBufferBytes(sourceBuffer), 4 * 2 * 4);
   assert.ok(api.MAX_EDITOR_HISTORY_BYTES <= 128 * 1024 * 1024);
   assert.ok(api.MAX_EDITOR_BUFFER_BYTES <= 128 * 1024 * 1024);
+  assert.equal(api.MAX_EDITOR_SESSION_BYTES, 256 * 1024 * 1024);
+  S.edits.clear();
+  S.edits.set("memory-fixture", {
+    buffer: { length: api.MAX_EDITOR_SESSION_BYTES / 4, numberOfChannels: 1 },
+    historyBytes: 0
+  });
+  assert.equal(api.sessionEditorBytes(), api.MAX_EDITOR_SESSION_BYTES);
+  S.editorState = null;
+  await assert.rejects(api.ensureVisualEditor(), /Budget mémoire de session atteint/);
+  S.edits.clear();
 
   console.log("PASS: isolated source buffer, multichannel range gain, undo/redo, fades, normalize, reverse, silence, trim, envelope scope and reset.");
 })().catch(error => {
