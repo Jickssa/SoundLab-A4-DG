@@ -48,10 +48,23 @@ duplicates = sorted(key for key, count in counts.items() if count > 1)
 if duplicates:
     fail("Duplicate HTML ids: " + ", ".join(duplicates))
 
-selector_ids = set(re.findall(r"\$\('#([A-Za-z0-9_-]+)'\)", script))
+binding_match = re.search(
+    r"E=\{\};\[(.*?)\]\.forEach\(k=>E\[k\]=\$\('#'\+k\)\);",
+    script,
+    re.S,
+)
+if not binding_match:
+    fail("Could not locate the dynamic DOM binding list")
+binding_list = re.findall(r"['"]([A-Za-z0-9_-]+)['"]", binding_match.group(1))
+binding_counts = Counter(binding_list)
+duplicate_bindings = sorted(key for key, count in binding_counts.items() if count > 1)
+if duplicate_bindings:
+    fail("DOM IDs are bound more than once: " + ", ".join(duplicate_bindings))
+
+selector_ids = set(binding_list) | set(re.findall(r"\$\('#([A-Za-z0-9_-]+)'\)", script))
 missing = sorted(selector_ids - set(audit.ids))
 if missing:
-    fail("JavaScript selectors reference missing IDs: " + ", ".join(missing))
+    fail("JavaScript bindings reference missing IDs: " + ", ".join(missing))
 
 required = {
     "fileInput", "dirInput", "rows", "midiOut", "midiIn", "target",
@@ -71,7 +84,7 @@ if "Hardware receipt is not confirmed" not in script and "hardware receipt is no
 print(
     "PASS: "
     f"{len(audit.ids)} unique HTML IDs; "
-    f"{len(selector_ids)} JavaScript selector IDs; "
+    f"{len(selector_ids)} JavaScript-bound IDs; "
     f"{len(required)} required controls; "
     "SysEx acknowledgement checkbox present."
 )
