@@ -7,7 +7,7 @@ Local-first sound library, audition workstation and cautious SysEx utility for E
 > **Version 3.2 — experimental / community testing required.** Independent project; not affiliated with Elektron and not a replacement for Elektron Transfer.
 
 ## Quick start
-Open `index.html` in a recent Chromium browser. Audio and local file inspection work without a server. For Web MIDI/SysEx and audio-input capture on Windows, run `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 required), then open `http://localhost:8765`.
+Open `index.html` in a recent Chromium browser. Audio and local file inspection work without a server. Each successful GitHub Actions run also publishes a portable ZIP artifact (Actions → latest successful run → Artifacts). For Web MIDI/SysEx and audio-input capture on Windows, run `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 required), then open `http://localhost:8765`.
 
 ## Current features
 - Inventory of .afsnd, .dnsnd, .syx, supported audio, ZIP archives and project files.
