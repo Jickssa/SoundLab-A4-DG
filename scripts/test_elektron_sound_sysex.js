@@ -110,5 +110,8 @@ const firmware = new Function(html.slice(firmwareStart, firmwareEnd) + "; return
 assert.equal(firmware({ name: "Analog-Four_Analog-Keys_OS1.56.syx", path: "Analog-Four_Analog-Keys_OS1.56.syx" }), true);
 assert.equal(firmware({ name: "OS 1.55B update.syx", path: "OS 1.55B update.syx" }), true);
 assert.equal(firmware({ name: "Chaos Pad.syx", path: "Chaos Pad.syx" }), false);
+assert.match(html, /!i\.soundInfo/);
+assert.match(html, /x\.transferable&&x\.soundInfo/);
+
 
 console.log("PASS: Analog Four and Digitone Sound SysEx framing, checksum, length, model ID, 7-bit payload, name and tags.");
