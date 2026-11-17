@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d13">
-<title>Elektron SoundLab — Audition & SysEx v3.5</title>
+<title>Elektron SoundLab — Audition & SysEx v3.6</title>
 <meta name="description" content="Local-first sound library and audition workstation for Elektron Analog Four MKI and Digitone MK1.">
 <style>
 :root{--line:#293648;--text:#e8edf5;--muted:#9ba9bc;--blue:#83caff;--violet:#c6a0ff;--green:#75e0ad;--amber:#ffce70;--red:#ff8799;--shadow:0 18px 55px #0008}
@@ -102,15 +102,78 @@ async function importBlob(blob,name,path=name,depth=0){
  S.items.push(item({name:base(name),path,ext:x,kind:'other',size:blob.size,blob,device:'unknown',status:'Inventory only'}));
 }
 async function native(blob,name,path){const x=ext(name);let bytes=new Uint8Array(await blob.arrayBuffer()),manifest=null,tags=[],payload=bytes;if(x==='afsnd'){try{const z=readZip(bytes.buffer),m=z.entries.find(e=>base(e.name).toLowerCase()==='manifest.json');if(m){manifest=JSON.parse(new TextDecoder().decode(await unzip(z,m)));const ref=typeof manifest.Payload==='string'?manifest.Payload:'';let pe=z.entries.find(e=>e.name===ref)||z.entries.find(e=>base(e.name).toLowerCase()===base(ref).toLowerCase());if(!pe)pe=z.entries.find(e=>base(e.name).toLowerCase()!=='manifest.json'&&!/\.metadata$/i.test(e.name));if(pe)payload=await unzip(z,pe)}for(const t of manifest?.MetaInfo?.Tags||[])tags.push(t);for(const t of manifest?.Tags||[])tags.push(t)}catch(e){log('AFSND manifest not read: '+e.message,'warn')}}else tags=ascii(payload).filter(s=>s.length>=5&&s.length<32).slice(0,2);const title=manifest?.Name||manifest?.SoundName||base(name).replace(/\.(afsnd|dnsnd)$/i,''),d=device(name);S.items.push(item({name:title,path,ext:x,kind:'native',size:blob.size,blob,payload,manifest,tags,device:d,status:'Native sound — proxy preview',previewable:true,category:cat(title+' '+tags.join(' ')),sampleCount:Array.isArray(manifest?.Samples)?manifest.Samples.length:0}))}
-function split(a){let start=-1,msg=[],warn=[];for(let i=0;i<a.length;i++){if(a[i]===240){if(start>=0)warn.push('Nested F0');start=i}else if(a[i]===247&&start>=0){msg.push(a.slice(start,i+1));start=-1}}if(start>=0)warn.push('Unterminated SysEx');return{msg,warn}}async function syx(blob,name,path){
- const a=new Uint8Array(await blob.arrayBuffer()),r=split(a);
- S.items.push(item({name:base(name),path,ext:'syx',kind:'syxpack',size:blob.size,blob,status:r.msg.length+' SysEx messages',warning:r.warn,previewable:false}));
- r.msg.forEach((m,i)=>{
-  const valid=m.length>5&&m.length<=LIMITS.maxSysexBytes&&m[0]===240&&m[1]===0&&m[2]===32&&m[3]===60&&m.slice(1,-1).every(b=>b<128);
-  S.items.push(item({name:base(name)+' · '+String(i+1).padStart(3,'0'),path,ext:'syx',kind:'syxmsg',size:m.length,bytes:m,blob:new Blob([m]),device:'elektron',status:valid?'Elektron SysEx candidate':'Unverified SysEx',transferable:valid,previewable:false,warning:valid?[]:['Manufacturer, 7-bit format or size check failed']}));
- });
- log(r.msg.length+' SysEx messages extracted. These are data, not audio previews.','ok');
+function split(a){let start=-1,msg=[],warn=[];for(let i=0;i<a.length;i++){if(a[i]===240){if(start>=0)warn.push('Nested F0');start=i}else if(a[i]===247&&start>=0){msg.push(a.slice(start,i+1));start=-1}}if(start>=0)warn.push('Unterminated SysEx');return{msg,warn}}
+const ELEKTRON_SOUND_TAGS={
+ a4:['BASS','LEAD','PAD','TEXTURE','CHORD','KEYS','BRASS','STRINGS','TRANSIENT','SOUND FX','KICK','SNARE','HIHAT','PERCUSSION','ATMOSPHERE','EVOLVING','NOISY','GLITCH','HARD','SOFT','EXPRESSIVE','DEEP','DARK','BRIGHT','VINTAGE','ACID','EPIC','FAIL','TEMPO SYN','INPUT','MINE','FAVOURITE'],
+ dn:['KICK','SNAR','DEEP','BRAS','STRI','PERC','HHAT','CYMB','EVOL','EXPR','BASS','LEAD','PAD','TXTR','CRD','SFX','ARP','METL','ACOU','ATMO','NOIS','GLCH','HARD','SOFT','DARK','BRGT','VNTG','EPIC','FAIL','LOOP','MINE','FAV']
+};
+function decodeElektronSoundPayload(encoded){
+ if(encoded.length%8===1)throw Error('Invalid 8-in-7 payload: trailing MSB byte without data');
+ const out=[];
+ for(let offset=0;offset<encoded.length;offset+=8){
+  const group=encoded.slice(offset,Math.min(offset+8,encoded.length)),msb=group[0];
+  if(msb>127)throw Error('Non-7-bit byte in encoded payload');
+  for(let i=1;i<group.length;i++){
+   if(group[i]>127)throw Error('Non-7-bit byte in encoded payload');
+   out.push(group[i]|(((msb>>(7-i))&1)<<7));
+  }
+ }
+ return Uint8Array.from(out);
 }
+function encodeElektronSoundNumber(n){return[(n>>7)&127,n&127]}
+function inspectElektronSoundMessage(message){
+ const m=Array.from(message||[]);
+ const fail=reason=>({ok:false,reason});
+ if(m.length<15||m[0]!==240||m[m.length-1]!==247)return fail('Incomplete F0…F7 SysEx frame');
+ if(m.slice(1,4).join(',')!=='0,32,60')return fail('Elektron manufacturer ID 00 20 3C not present');
+ const modelId=m[4],model=modelId===6?'a4':modelId===13?'dn':null;
+ if(!model)return fail('Model ID is not Analog Four (06) or Digitone MK1 (0D)');
+ if(m.slice(5,9).join(',')!=='0,83,1,1')return fail('Elektron Sound message prefix 00 53 01 01 not present');
+ if(m.slice(1,-1).some(b=>!Number.isInteger(b)||b<0||b>127))return fail('Non-7-bit byte in SysEx body');
+ const encoded=m.slice(10,m.length-5);
+ if(!encoded.length)return fail('Empty Sound payload');
+ if(encoded.length%8===1)return fail('Invalid 8-in-7 payload length');
+ const checksum=((m[m.length-5]<<7)|m[m.length-4])&0x3fff;
+ const calculated=encoded.reduce((sum,b)=>sum+b,0)&0x3fff;
+ if(checksum!==calculated)return fail('Sound SysEx checksum mismatch');
+ const declaredLength=(m[m.length-3]<<7)|m[m.length-2];
+ if(declaredLength!==m.length-10)return fail('Sound SysEx length field mismatch');
+ let raw;
+ try{raw=decodeElektronSoundPayload(encoded)}catch(e){return fail(e.message)}
+ if(raw.length<28)return fail('Decoded Sound payload is too short for name and tags');
+ const tagNames=ELEKTRON_SOUND_TAGS[model],tags=[];
+ for(let t=0;t<32;t++)if((raw[11-Math.floor(t/8)]>>(t%8))&1)tags.push(tagNames[t]);
+ let nameBytes=Array.from(raw.slice(12,27)),nullAt=nameBytes.indexOf(0);
+ if(nullAt>=0)nameBytes=nameBytes.slice(0,nullAt);
+ const name=nameBytes.map(b=>String.fromCharCode(b)).join('').replace(/[\u0000-\u001f\u007f]/g,'').trim();
+ return{
+  ok:true,model,modelId,modelLabel:model==='a4'?'Analog Four / Analog Keys':'Digitone MK1',
+  slot:m[9],name,tags,encodedLength:encoded.length,decodedLength:raw.length,
+  checksumValid:true,lengthValid:true,format:'Elektron Sound SysEx'
+ };
+}
+async function syx(blob,name,path){
+ const a=new Uint8Array(await blob.arrayBuffer()),r=split(a);
+ const inspected=r.msg.map(inspectElektronSoundMessage);
+ const sounds=inspected.filter(x=>x.ok);
+ const firmwareName=firmware({name,path});
+ S.items.push(item({name:base(name),path,ext:'syx',kind:'syxpack',size:blob.size,blob,status:r.msg.length+' SysEx messages · '+sounds.length+' validated Sound(s)',warning:r.warn,previewable:false,soundCount:sounds.length}));
+ r.msg.forEach((m,i)=>{
+  const info=inspected[i],valid=info.ok,blocked=firmwareName;
+  const displayName=valid?(info.name||'Unnamed Sound')+' · '+info.modelLabel+' · '+String(info.slot).padStart(3,'0'):base(name)+' · '+String(i+1).padStart(3,'0');
+  const transferable=valid&&!blocked;
+  S.items.push(item({
+   name:displayName,path,ext:'syx',kind:'syxmsg',size:m.length,bytes:m,blob:new Blob([m]),
+   device:valid?info.model:'elektron',
+   status:transferable?'Validated '+info.modelLabel+' Sound · slot '+info.slot+' · checksum and length OK':blocked?'Sound-like frame blocked by firmware/OS filename heuristic':valid?'Sound frame recognized; sending blocked':'Raw SysEx — not a validated Elektron Sound',
+   transferable,previewable:false,soundInfo:valid?info:null,tags:valid?info.tags:[],
+   category:valid?cat(info.name+' '+info.tags.join(' ')):'general',
+   warning:transferable?[]:[blocked?'Filename/path suggests firmware or OS data':info.reason]
+  }));
+ });
+ log(r.msg.length+' SysEx message(s) extracted; '+sounds.length+' validated Elektron Sound frame(s). Other messages remain inventory-only.','ok');
+}
+
 function current(){return S.items.find(i=>i.id===S.selected)||null}function out(){return S.midi?.outputs.get(E.midiOut.value)}function note(){
  const o=out();if(!o)return log('No MIDI output selected.','bad');
  const ch=clamp(+E.midiChannel.value||1,1,16)-1,n=clamp(+E.midiNote.value||60,0,127);
@@ -147,6 +210,7 @@ function firmware(i){return/(firmware|upgrade|bootloader|updater)/i.test(i.name+
  const o=out();
  if(!o||!i||i.kind!=='syxmsg'||!i.transferable||firmware(i))return false;
  if(!['a4','dn'].includes(E.target.value)){log('Choose an explicit target instrument before sending SysEx.','warn');return false}
+ if(!i.soundInfo||i.soundInfo.model!==E.target.value){log('The validated Sound frame does not match the selected target model.','warn');return false}
  if(!E.sysexAck.checked){log('Confirm the SysEx safety acknowledgement first.','warn');return false}
  if(i.bytes.length>LIMITS.maxSysexBytes){log('SysEx message exceeds the 8 KiB limit.','bad');return false}
  const target=E.target.value==='a4'?'Analog Four MKI / Analog Keys':'Digitone MK1';
@@ -266,7 +330,7 @@ async function capture(){const i=current();if(!i||!navigator.mediaDevices?.getUs
   catch(err){S.externalAudio=null;log('Capture playback failed: '+err.message,'bad')}
  }
 }function exportCap(){const i=current(),c=i&&S.captures.get(i.id);if(!c)return;const t=(c.blob.type||'').toLowerCase(),e=t.includes('webm')?'webm':t.includes('ogg')?'ogg':t.includes('mp4')?'m4a':'bin';dl(c.blob,i.name+'_capture.'+e)}function linkAudio(){const i=current(),a=S.items.filter(x=>x.selected&&x.kind==='audio');if(!i||a.length!==1)return log('Select one audio file checkbox, then select the patch and link again.','warn');i.ref=a[0].id;S.auditionMode='reference';renderDetail(i);log('Real audio reference linked. Press A for the recording or B for the proxy.','ok')}function unlinkAudio(){const i=current();if(i){i.ref=null;S.auditionMode=S.captures.has(i.id)?'reference':'proxy';renderDetail(i)}}
-function stats(){E.nItems.textContent=S.items.length;E.nSelected.textContent=S.items.filter(x=>x.selected).length;E.nPreview.textContent=S.items.filter(x=>x.previewable||x.ref).length;E.nSyx.textContent=S.items.filter(x=>x.transferable).length}function select(id){S.selected=id;const i=current();S.auditionMode=(i?.ref||S.captures.has(i?.id))?'reference':'proxy';render();if(i)renderDetail(i)}function render(){const i=current(),q=E.search.value.toLowerCase(),k=E.kindFilter.value,st=E.statusFilter.value,d=E.deviceFilter.value;const a=S.items.filter(x=>(!q||[x.name,x.path,x.ext,x.status,(x.tags||[]).join(' '),x.category].join(' ').toLowerCase().includes(q))&&(k==='all'||(k==='native'?x.kind==='native':k==='audio'?x.kind==='audio':k==='syx'?['syxpack','syxmsg'].includes(x.kind):['other','project'].includes(x.kind)))&&(st==='all'||(st==='preview'?(x.previewable||x.ref):st==='transfer'?x.transferable:st==='warn'?x.warning.length>0: x.favorite))&&(d==='all'||x.device===d||(d==='elektron'&&['unknown','elektron'].includes(x.device))));E.rows.innerHTML='';for(const x of a){const tr=document.createElement('tr');tr.dataset.id=x.id;if(x.id===S.selected)tr.className='active';const cl=x.kind==='native'?'k-afsnd':x.kind.startsWith('syx')?'k-syx':x.kind==='audio'?'k-audio':'k-other';tr.innerHTML='<td><input class="pick" type="checkbox" '+(x.selected?'checked':'')+'></td><td><div class="name"><span class="kind '+cl+'">'+esc(x.ext||x.kind)+'</span><div><div class="filename">'+esc(x.name)+'</div><div class="path">'+esc(x.path)+'</div></div></div></td><td>'+esc(x.ext||'—')+'</td><td>'+esc(x.device)+'</td><td>'+fmt(x.size)+'</td><td>'+(x.previewable?'<span class="badge b-ok">preview</span>':'')+(x.transferable?'<span class="badge b-ok">SysEx candidate</span>':'')+(x.warning.length?'<span class="badge b-warn">check</span>':'')+'</td><td><button class="small inspect">Details</button> <button class="small listen">▶</button></td>';tr.querySelector('.pick').onclick=e=>{e.stopPropagation();x.selected=e.target.checked;stats()};tr.querySelector('.inspect').onclick=e=>{e.stopPropagation();select(x.id)};tr.querySelector('.listen').onclick=e=>{e.stopPropagation();select(x.id);play()};tr.onclick=()=>select(x.id);E.rows.append(tr)}stats();if(i&&S.selected)renderDetail(i)}function renderDetail(i){E.noItem.classList.add('hidden');E.inspector.classList.remove('hidden');E.detailName.textContent=i.name;E.detailPath.textContent=i.path;E.tags.innerHTML=(i.tags||[]).map(t=>'<span class="chip">'+esc(t)+'</span>').join('');const pairs=[['Format',i.ext],['Size',fmt(i.size)],['Device',i.device],['Status',i.status],['Category',i.category||'—'],['Audio ref',i.ref?(S.items.find(x=>x.id===i.ref)?.name||'missing'):'none']];if(i.manifest)pairs.push(['Manifest','available'],['Samples',String(i.sampleCount||0)]);E.meta.innerHTML=pairs.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||'—')+'</dd></div>').join('');E.play.disabled=!i.previewable&&!i.ref;E.render.disabled=!i.previewable;E.exportWav.disabled=!i.previewable&&!i.ref;E.sendCurrent.disabled=!i.transferable||firmware(i)||!E.sysexAck.checked||!['a4','dn'].includes(E.target.value)||i.bytes?.length>LIMITS.maxSysexBytes;E.sendAndNote.disabled=E.sendCurrent.disabled;E.favorite.textContent=i.favorite?'★ Favourite':'☆ Favourite';E.engineLabel.textContent=i.kind==='audio'?'Original audio':S.auditionMode==='reference'&&(S.captures.has(i.id)||i.ref)?(S.captures.has(i.id)?'A · Machine capture':'A · Real audio reference'):i.kind==='native'?'B · Proxy '+i.ext.toUpperCase():i.kind==='syxmsg'?'Raw SysEx data':'—';E.analysis.textContent=S.auditionMode==='reference'&&(S.captures.has(i.id)||i.ref)?(S.captures.has(i.id)?'A real audio capture from the instrument is selected; this is not decoded from the native patch. Press B to hear the proxy approximation.':'A linked audio reference is selected; this is not decoded from the native patch. Press B to hear the proxy approximation.'):(i.ref||S.captures.has(i.id))&&S.auditionMode==='proxy'?'The proxy approximation is selected. Press A to hear the real audio capture/reference.':i.kind==='native'?'Native container inspected; proprietary synth parameters are not decoded. Proxy sound is approximate.':i.kind==='syxmsg'?'Raw SysEx is data, not audio. No proxy tone is generated from arbitrary messages. Link a verified audio recording for audible reference.':i.kind==='audio'?'Audio decoded by browser if codec supported.':'Inventory only.';E.linkAudio.disabled=i.kind==='audio';E.unlinkAudio.disabled=!i.ref;E.auditionA.disabled=!(i.ref||S.captures.has(i.id)||i.kind==='audio');E.auditionB.disabled=i.kind!=='native';E.abStatus.textContent=(i.ref||S.captures.has(i.id))?(S.auditionMode==='reference'?(S.captures.has(i.id)?'Mode A actif · capture de la machine':'Mode A actif · fichier audio lié'):'Mode B actif · proxy synthétique'):(i.kind==='native'?'Proxy disponible · enregistrer la sortie machine pour comparer A/B':'Aucun comparatif A/B pour ce format');E.exportCapture.disabled=!S.captures.has(i.id);if(i.preview){wave(i.preview)}else if(i.buffer){wave(i.buffer)}else{clearWave()}}
+function stats(){E.nItems.textContent=S.items.length;E.nSelected.textContent=S.items.filter(x=>x.selected).length;E.nPreview.textContent=S.items.filter(x=>x.previewable||x.ref).length;E.nSyx.textContent=S.items.filter(x=>x.transferable).length}function select(id){S.selected=id;const i=current();S.auditionMode=(i?.ref||S.captures.has(i?.id))?'reference':'proxy';render();if(i)renderDetail(i)}function render(){const i=current(),q=E.search.value.toLowerCase(),k=E.kindFilter.value,st=E.statusFilter.value,d=E.deviceFilter.value;const a=S.items.filter(x=>(!q||[x.name,x.path,x.ext,x.status,(x.tags||[]).join(' '),x.category].join(' ').toLowerCase().includes(q))&&(k==='all'||(k==='native'?x.kind==='native':k==='audio'?x.kind==='audio':k==='syx'?['syxpack','syxmsg'].includes(x.kind):['other','project'].includes(x.kind)))&&(st==='all'||(st==='preview'?(x.previewable||x.ref):st==='transfer'?x.transferable:st==='warn'?x.warning.length>0: x.favorite))&&(d==='all'||x.device===d||(d==='elektron'&&['unknown','elektron'].includes(x.device))));E.rows.innerHTML='';for(const x of a){const tr=document.createElement('tr');tr.dataset.id=x.id;if(x.id===S.selected)tr.className='active';const cl=x.kind==='native'?'k-afsnd':x.kind.startsWith('syx')?'k-syx':x.kind==='audio'?'k-audio':'k-other';tr.innerHTML='<td><input class="pick" type="checkbox" '+(x.selected?'checked':'')+'></td><td><div class="name"><span class="kind '+cl+'">'+esc(x.ext||x.kind)+'</span><div><div class="filename">'+esc(x.name)+'</div><div class="path">'+esc(x.path)+'</div></div></div></td><td>'+esc(x.ext||'—')+'</td><td>'+esc(x.device)+'</td><td>'+fmt(x.size)+'</td><td>'+(x.previewable?'<span class="badge b-ok">preview</span>':'')+(x.transferable?'<span class="badge b-ok">SysEx candidate</span>':'')+(x.warning.length?'<span class="badge b-warn">check</span>':'')+'</td><td><button class="small inspect">Details</button> <button class="small listen">▶</button></td>';tr.querySelector('.pick').onclick=e=>{e.stopPropagation();x.selected=e.target.checked;stats()};tr.querySelector('.inspect').onclick=e=>{e.stopPropagation();select(x.id)};tr.querySelector('.listen').onclick=e=>{e.stopPropagation();select(x.id);play()};tr.onclick=()=>select(x.id);E.rows.append(tr)}stats();if(i&&S.selected)renderDetail(i)}function renderDetail(i){E.noItem.classList.add('hidden');E.inspector.classList.remove('hidden');E.detailName.textContent=i.name;E.detailPath.textContent=i.path;E.tags.innerHTML=(i.tags||[]).map(t=>'<span class="chip">'+esc(t)+'</span>').join('');const pairs=[['Format',i.ext],['Size',fmt(i.size)],['Device',i.device],['Status',i.status],['Category',i.category||'—'],['Audio ref',i.ref?(S.items.find(x=>x.id===i.ref)?.name||'missing'):'none']];if(i.soundInfo)pairs.push(['Sound model',i.soundInfo.modelLabel],['Sound slot',String(i.soundInfo.slot)],['Sound name',i.soundInfo.name||'unnamed'],['Payload decoded',String(i.soundInfo.decodedLength)+' bytes'],['Framing','Manufacturer, model, type, checksum and length validated']);if(i.soundInfo)pairs.push(['Sound tags',i.soundInfo.tags.length?i.soundInfo.tags.join(', '):'none']);if(i.soundCount!==undefined)pairs.push(['Validated Sounds',String(i.soundCount)]);if(i.manifest)pairs.push(['Manifest','available'],['Samples',String(i.sampleCount||0)]);E.meta.innerHTML=pairs.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||'—')+'</dd></div>').join('');E.play.disabled=!i.previewable&&!i.ref;E.render.disabled=!i.previewable;E.exportWav.disabled=!i.previewable&&!i.ref;E.sendCurrent.disabled=!i.transferable||firmware(i)||!E.sysexAck.checked||!['a4','dn'].includes(E.target.value)||i.bytes?.length>LIMITS.maxSysexBytes||(i.soundInfo&&i.soundInfo.model!==E.target.value);E.sendAndNote.disabled=E.sendCurrent.disabled;E.favorite.textContent=i.favorite?'★ Favourite':'☆ Favourite';E.engineLabel.textContent=i.kind==='audio'?'Original audio':S.auditionMode==='reference'&&(S.captures.has(i.id)||i.ref)?(S.captures.has(i.id)?'A · Machine capture':'A · Real audio reference'):i.kind==='native'?'B · Proxy '+i.ext.toUpperCase():i.kind==='syxmsg'?(i.soundInfo?'Elektron Sound metadata':'Raw SysEx data'):'—';E.analysis.textContent=S.auditionMode==='reference'&&(S.captures.has(i.id)||i.ref)?(S.captures.has(i.id)?'A real audio capture from the instrument is selected; this is not decoded from the native patch. Press B to hear the proxy approximation.':'A linked audio reference is selected; this is not decoded from the native patch. Press B to hear the proxy approximation.'):(i.ref||S.captures.has(i.id))&&S.auditionMode==='proxy'?'The proxy approximation is selected. Press A to hear the real audio capture/reference.':i.kind==='native'?'Native container inspected; proprietary synth parameters are not decoded. Proxy sound is approximate.':i.kind==='syxmsg'?(i.soundInfo?'A structured Elektron Sound SysEx frame was recognized. Its model, slot, name and tags are inspected after checksum/length validation; synthesis parameters are not decoded and no audio proxy is generated.':'Raw SysEx is data, not audio. This message is not a validated Sound frame and cannot be sent by SoundLab. No proxy tone is generated. Link a verified audio recording for audible reference.'):i.kind==='audio'?'Audio decoded by browser if codec supported.':'Inventory only.';E.linkAudio.disabled=i.kind==='audio';E.unlinkAudio.disabled=!i.ref;E.auditionA.disabled=!(i.ref||S.captures.has(i.id)||i.kind==='audio');E.auditionB.disabled=i.kind!=='native';E.abStatus.textContent=(i.ref||S.captures.has(i.id))?(S.auditionMode==='reference'?(S.captures.has(i.id)?'Mode A actif · capture de la machine':'Mode A actif · fichier audio lié'):'Mode B actif · proxy synthétique'):(i.kind==='native'?'Proxy disponible · enregistrer la sortie machine pour comparer A/B':'Aucun comparatif A/B pour ce format');E.exportCapture.disabled=!S.captures.has(i.id);if(i.preview){wave(i.preview)}else if(i.buffer){wave(i.buffer)}else{clearWave()}}
 async function series(){
  const ids=S.items.filter(x=>x.selected&&(x.previewable||x.ref)).map(x=>x.id);
  if(!ids.length)return log('No playable items selected.','warn');
@@ -287,6 +351,7 @@ async function sendBatch(){
  const a=S.items.filter(x=>x.selected&&x.kind==='syxmsg'&&x.transferable&&!firmware(x));
  if(!out()||!a.length)return log('Select validated SysEx messages and a MIDI output.','warn');
  if(!['a4','dn'].includes(E.target.value))return log('Choose the exact target instrument before sending.','warn');
+ if(a.some(x=>!x.soundInfo||x.soundInfo.model!==E.target.value))return log('Every selected Sound frame must match the selected target model.','warn');
  if(!E.sysexAck.checked)return log('Tick the SysEx safety acknowledgement before sending.','warn');
  if(a.length>LIMITS.maxBatch)return log('Limit each batch to '+LIMITS.maxBatch+' messages.','warn');
  if(a.some(x=>x.bytes.length>LIMITS.maxSysexBytes))return log('A selected message exceeds the 8 KiB safety limit.','warn');
@@ -318,7 +383,7 @@ function openLibraryDB(){
 }
 function updateLocalStatus(message){if(E.localStatus)E.localStatus.textContent=message}
 function persistedItem(i){
- const keys=['id','name','path','ext','kind','size','blob','bytes','payload','manifest','tags','device','status','transferable','previewable','warning','category','payloadPath','sampleCount','favorite','ref'];
+ const keys=['id','name','path','ext','kind','size','blob','bytes','payload','manifest','tags','device','status','transferable','previewable','warning','category','payloadPath','sampleCount','favorite','ref','soundInfo','soundCount'];
  const record={recordType:'item'};
  for(const key of keys)if(i[key]!==undefined)record[key]=i[key];
  record.selected=false;
