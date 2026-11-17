@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3 — persistent local library
+- Add optional IndexedDB save, restore and delete controls.
+- Persist imported source blobs, typed-array payloads, metadata, tags, favourites, linked audio IDs and recorded capture blobs.
+- Rebuild decoded audio buffers, proxy previews and capture object URLs after restore.
+- Keep persistence manual and browser-origin/profile scoped; display local entry counts and quota estimates where supported.
+- Expand CI required-control audit and regression invariants for local persistence.
+
 ## 3.2 — reliability, audition and transfer safeguards
 - Fix sequential audition state so queue playback advances through the selected items.
 - Apply attack, release, stereo width and a feedback-delay reverb stage to proxy rendering.
