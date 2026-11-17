@@ -69,7 +69,7 @@ if missing:
 required = {
     "fileInput", "dirInput", "rows", "midiOut", "midiIn", "target",
     "sysexAck", "sendCurrent", "sendSelected", "play", "stop",
-    "wave", "analysis", "capture", "exportInventory",
+    "wave", "analysis", "capture", "exportInventory", "saveLocal", "restoreLocal", "deleteLocal", "localStatus",
 }
 missing_required = sorted(required - set(audit.ids))
 if missing_required:
