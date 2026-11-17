@@ -1,4 +1,4 @@
-# SoundLab v3.4 — test plan
+# SoundLab v3.5 — test plan
 
 This checklist is for reproducible community tests. Distinguish static checks, browser-only checks and physical-device checks. Do not use irreplaceable sound banks or an unbacked-up instrument.
 
@@ -9,6 +9,7 @@ python3 scripts/check_html.py
 node scripts/test_parsers.js
 node scripts/test_persistence.js
 node scripts/test_audio_inspector.js
+node scripts/test_ab_audition.js
 python3 - <<'PY'
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
@@ -21,27 +22,25 @@ python3 scripts/package_portable.py
 GitHub Actions runs the same checks and uploads the portable ZIP artifact.
 
 ## Browser test matrix
-- [ ] Open the standalone file in Chrome / Edge.
-- [ ] Import one WAV and verify playback, waveform and WAV export.
-- [ ] Import one supported compressed audio file; record any browser/codec failure.
+- [ ] Import a WAV and verify playback, waveform and WAV export.
 - [ ] Verify audio facts show duration, sample rate, channel count and sampled peak/RMS.
 - [ ] Change waveform zoom and horizontal position; verify the visible window changes.
 - [ ] Change monitoring gain during playback; verify loudness changes while exported WAV remains source-level.
 - [ ] Import one AFSND and one DNSND; verify proxy-only preview.
 - [ ] Change attack, release, width and reverb separately; regenerate and confirm the proxy changes.
-- [ ] Link a real audio file to a native sound; verify Play and WAV export use that recording.
-- [ ] Capture a short audio input and verify the exported extension matches the recording format.
+- [ ] Link a real audio file to a native sound; press A then B; verify the first uses the linked recording and the second uses the native proxy.
+- [ ] Capture machine audio directly while a native sound is selected; verify the capture becomes available in A and B remains the proxy.
+- [ ] Export A and B separately; verify distinct filenames and that A contains the recording while B contains proxy audio.
+- [ ] Reload from the same browser origin, restore IndexedDB and verify the direct capture is still selectable in A.
+- [ ] Verify a raw SysEx item is never proxy-auditionable; with a linked audio recording, only A should be available.
 - [ ] Select at least three playable items and test sequential audition.
-- [ ] Import the same path twice; verify duplicate detection.
-- [ ] Import a small ZIP with stored and deflate entries; verify CRC and nested archive handling.
-- [ ] Verify encrypted, ZIP64, oversized and malformed ZIPs are rejected.
-- [ ] Import a SysEx file; verify raw messages are not marked as audio-previewable.
-- [ ] Verify explicit target selection and acknowledgement are required before sending.
+- [ ] Test ZIP CRC/size/expansion limits and duplicate import detection.
+- [ ] Verify explicit target selection and acknowledgement are required before sending SysEx.
 
 ## IndexedDB persistence checks
-- [ ] Save a library containing one native sound, one audio file, a favourite, an audio link and a capture.
+- [ ] Save a library with one native sound, one audio file, a favourite, an audio link and a direct capture.
 - [ ] Reload on the same browser profile and exact same origin; restore.
-- [ ] Verify binaries, metadata, favourites, links and capture are restored.
+- [ ] Verify source binaries, metadata, favourites, links and capture are restored, and A mode selects the direct capture.
 - [ ] Delete the persistent backup; verify the open session remains.
 - [ ] Repeat with storage disabled/quota exhausted; verify a useful error appears.
 
