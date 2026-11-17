@@ -16,6 +16,15 @@ Each native item may have an imported audio reference (`item.ref`) and/or a dire
 ## Audio inspector and monitoring
 The inspector reports decoded AudioBuffer duration, sample rate and channel count. Peak and RMS are estimates computed by sampling at most 250,000 frames per channel to keep analysis responsive on large buffers. Waveform zoom and horizontal position change the displayed sample window. A Web Audio GainNode controls monitoring level from 0–150%; this does not change source buffers or the WAV export data.
 
+## Visual audio editor
+The editor creates a private copy of the currently resolved audio source (audio file, A/reference capture, linked audio or B/proxy render). It never writes samples into the imported Blob, native sound payload or capture Blob. The active working AudioBuffer is held in a map keyed by library item and audition mode, so A and B edits remain separate. A source token invalidates stale edits when a new capture or proxy render replaces the previous source.
+
+Mouse and touch dragging on the waveform selects a time range using the current zoom/pan view. The envelope tool draws a gain curve over the selected range or, with no selection, over the visible range. Gain, linear fades, peak normalization to −1 dBFS, reverse, silence and trim are sample-domain operations applied to all channels. A range snapshot or buffer-reference snapshot is retained for undo/redo. History is bounded to 128 MiB; one editable working buffer is limited to 128 MiB. Files exceeding the limit are rejected by the editor rather than partially processed.
+
+Playback and the existing WAV export use the edited AudioBuffer when the active source has an edit state. WAV export uses PCM 16-bit and clips samples outside ±1; the editor warns when an edit creates peaks above 0 dBFS and provides −1 dBFS normalization. “Create copy” encodes the edited audio as a new WAV item in the library; it does not replace the input file. In-memory edits are session scoped until exported or copied. Saving the library persists the new WAV copy as a normal source item, not the undo history.
+
+Native AFSND/DNSND synthesis parameters remain unmodified: in B mode the editor processes only SoundLab's generated proxy waveform. A-mode edits affect only the user-provided audio reference/capture. This feature is an audio waveform editor, not a native preset-parameter editor.
+
 ## IndexedDB persistence
 The database `ElektronSoundLabLibrary` version 1 contains an `entries` object store. Save writes item metadata and source `Blob`/typed-array payloads plus captured audio blobs in one read-write transaction. Restore reconstructs the in-memory library, recreates object URLs for captures, and lets the browser rebuild decoded AudioBuffers and proxy previews on demand. Delete removes the persistent store contents but does not clear the current session. Persistence is manual and bound to the current browser profile/origin. Browser quota, eviction and site-data clearing remain outside the application's control.
 
