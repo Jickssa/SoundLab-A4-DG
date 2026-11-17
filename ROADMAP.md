@@ -2,6 +2,12 @@
 
 This roadmap separates practical improvements from unverified reverse-engineering work. Completed items refer to development branches, not hardware certification.
 
+## Completed in v3.5
+- [x] Add A/B selection between direct machine capture / linked audio reference and native proxy synthesis.
+- [x] Prefer a direct capture attached to a native patch; fall back to the linked audio file.
+- [x] Export the active A/B source to a correspondingly named WAV.
+- [x] Keep raw SysEx as data; allow only a real recording reference in A, never an arbitrary proxy tone.
+
 ## Completed in v3.4
 - [x] Show decoded buffer duration, sample rate and channel count.
 - [x] Add sampled peak/RMS estimates with approximation clearly labelled.
