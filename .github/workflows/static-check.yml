@@ -20,6 +20,8 @@ jobs:
         run: node scripts/test_persistence.js
       - name: Run audio inspector regression tests
         run: node scripts/test_audio_inspector.js
+      - name: Run visual audio editor regression tests
+        run: node scripts/test_visual_editor.js
       - name: Run A/B audition regression tests
         run: node scripts/test_ab_audition.js
       - name: Extract inline JavaScript and check syntax
