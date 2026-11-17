@@ -15,8 +15,9 @@ Describe the user problem, workflow, target instrument, expected behaviour and a
 2. Keep the app dependency-free unless a dependency has clear value.
 3. Never change transfer semantics without fixtures and a safety review.
 4. Never describe proxy output as true hardware emulation.
-5. Run `scripts/check_js.sh` or extract the inline script and run `node --check`.
-6. Update French and English docs.
-7. Submit a focused pull request with manual test steps.
+5. Run `python3 scripts/check_html.py`.
+6. Extract the inline script and run `node --check` (the GitHub Actions workflow does both).
+7. Update French and English documentation.
+8. Submit a focused pull request with manual test steps.
 
 Issues and PRs may be written in English or French.
