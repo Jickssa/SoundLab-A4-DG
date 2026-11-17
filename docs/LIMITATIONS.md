@@ -3,7 +3,7 @@
 ## Three kinds of preview
 1. **Real audio**: decoded and played by the browser, depending on codec support.
 2. **Native sounds (.afsnd/.dnsnd)**: container/payload inspection plus deterministic proxy synthesis. Proprietary synth parameters are not reconstructed.
-3. **SysEx**: transport/data, not inherently audio. Raw SysEx messages are not assigned synthetic audio previews. A verified audio recording can be linked manually to an item.
+3. **SysEx**: transport/data, not inherently audio. In v3.6 only one individual Sound subtype is structurally recognized for A4 and Digitone; the parser extracts model, slot, name and tags after frame, checksum and length checks. It does not decode synthesis parameters. Other SysEx messages remain raw data and are not assigned synthetic audio previews. A verified audio recording can be linked manually to an item.
 
 For accurate audition, load the sound into the physical instrument using its supported workflow, connect its audio output to an interface, and record a reference. SoundLab can link that recording to the library item or retain a direct input capture on the selected patch.
 
@@ -26,14 +26,16 @@ For accurate audition, load the sound into the physical instrument using its sup
 - Native sound payloads are never sent as raw SysEx.
 - Project and firmware transfer are excluded.
 - Web MIDI `send()` only queues data in the browser/OS MIDI path; it is not a hardware acknowledgement.
-- Manufacturer and 7-bit checks are not complete semantic validation of every Elektron SysEx subtype.
-- Selecting Analog Four or Digitone is a user declaration. SoundLab cannot infer the exact target model from every SysEx message.
+- v3.6 recognizes one Sound SysEx subtype only; this does not validate Patterns, Projects, firmware, global dumps or every other Elektron SysEx subtype.
+- Only a recognized Sound frame can be queued; its embedded model ID must match the selected target. This is still not a hardware compatibility certification.
+- Selecting Analog Four or Digitone is a user declaration, and the browser queue is not a hardware receipt.
 
-## SysEx safeguards in v3.2
+## SysEx safeguards in v3.2–v3.6
 - An explicit Analog Four / Digitone target must be selected.
 - The operator must tick the acknowledgement checkbox and confirm the operation.
 - Messages larger than 8 KiB and batches larger than 128 messages are refused.
 - Obvious firmware/OS/bootloader names are blocked heuristically, but this cannot detect every firmware payload. **Never send unidentified, firmware, OS or bootloader data.**
+- v3.6 further restricts sending to Sound frames with a recognized model ID, Sound prefix, 8-in-7 payload, checksum and length. Non-Sound messages are inventory-only.
 - These gates reduce accidental sending; they do not prove that a dump is safe, compatible, or correctly addressed.
 
 ## Local persistence in v3.3
