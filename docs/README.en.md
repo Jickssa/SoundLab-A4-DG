@@ -4,7 +4,7 @@ A local-first sound library, audition workstation and cautious SysEx utility for
 
 [Français](README.fr.md) · [Installation](INSTALLATION.md) · [Limitations](LIMITATIONS.md) · [Testing](TESTING.md) · [Sound SysEx format](SYSEX_SOUND_FORMAT.md) · [Roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md)
 
-> **Version 3.6 — experimental; community testing required.** Independent project, not affiliated with Elektron. SoundLab is not a replacement for Elektron Transfer.
+> **Version 3.7 — experimental; community testing required.** Independent project, not affiliated with Elektron. SoundLab is not a replacement for Elektron Transfer.
 
 ## Quick start
 Open `index.html` in a recent Chromium browser. Audio and local file inspection work without a server. For Web MIDI/SysEx and audio-input capture on Windows, run `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 required), then open `http://localhost:8765`.
@@ -18,6 +18,8 @@ Open `index.html` in a recent Chromium browser. Audio and local file inspection 
 - **A/B audition**: A plays the real linked recording/capture; B plays the deterministic native-sound proxy. WAV export follows the active mode.
 - Audio inspector: duration, sample rate, channel count and sampled peak/RMS estimates.
 - Waveform zoom and horizontal navigation; separate monitoring gain.
+- Visual audio editor: mouse/touch time selection, hand-drawn gain envelope, gain, fades, −1 dBFS normalization, reverse, silence, trim, undo/redo and selection playback.
+- Export the edited result as WAV or create a new edited copy in the library without overwriting the imported source.
 - Filtering, favourites, sequential audition, JSON inventory and MIDI input monitoring.
 - Queue only recognized, validated Sound SysEx frames, with an exact match between the message model and selected target. Other SysEx messages remain non-transferable.
 - Optional IndexedDB persistence for imported files, metadata, favourites, audio references and captured audio.
@@ -31,7 +33,9 @@ Raw SysEx is data, not sound, and is never given an arbitrary proxy tone. If a S
 Use **Save locally**, **Restore** and **Delete backup** to manage the browser's IndexedDB copy. No files are uploaded. Restore from the same origin and browser profile. Clearing site data or the browser profile may delete this local copy; retain original source files and independent backups.
 
 ## Important limitations
-- Proprietary .afsnd/.dnsnd parameters are not decoded. Proxy playback is an approximation, **not an instrument emulator**.
+- Proprietary .afsnd/.dnsnd parameters are not decoded. Proxy playback is an approximation, **not an instrument emulator**. The editor can process proxy audio, but it does not change native preset parameters.
+- The editor operates on an in-memory AudioBuffer copy, limited to 128 MiB per track; undo history is capped at 128 MiB.
+- Session edits are not permanent backups: export the edited WAV or create a library copy, then save the local library.
 - A-mode audio is a user-provided recording/capture, not a decode of the proprietary patch.
 - Peak/RMS figures are sampled estimates, not exhaustive offline measurements.
 - SysEx inspection extracts Sound metadata only (model, slot, name, tags); it does not decode synthesis parameters.
