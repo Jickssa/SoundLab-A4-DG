@@ -15,7 +15,9 @@ const calls = [];
 const native = { id: "patch-1", kind: "native", ref: "audio-1", name: "Patch", key: null };
 const audio = { id: "audio-1", kind: "audio", name: "Hardware capture" };
 const rawSysex = { id: "syx-1", kind: "syxmsg", ref: "audio-1", name: "Dump message" };
-const S = { auditionMode: "reference", items: [native, audio, rawSysex] };
+const captureBlob = new Blob(["recorded hardware take"], { type: "audio/webm" });
+const S = { auditionMode: "reference", items: [native, audio, rawSysex],
+  captures: new Map([["patch-1", { blob: captureBlob }]]) };
 const E = {
   synthMode: { value: "auto" },
   previewNote: { value: "48" },
@@ -28,7 +30,10 @@ const E = {
   reverb: { value: "15" },
 };
 async function decode(item) { calls.push("decode:" + item.id); return "decoded:" + item.id; }
-async function ctx() { calls.push("ctx"); }
+async function ctx() {
+  calls.push("ctx");
+  return { decodeAudioData: async () => { calls.push("decode-capture:patch-1"); return "decoded:capture:patch-1"; } };
+}
 function proxy(item) { calls.push("proxy:" + item.id); return "proxy:" + item.id; }
 
 const source = html.slice(start, end) + "\nglobalThis.__abTest={getAuditionBuffer};";
@@ -37,7 +42,10 @@ vm.runInNewContext(source, context, { timeout: 2000 });
 const get = context.__abTest.getAuditionBuffer;
 
 (async () => {
-  assert.equal(await get(native), "decoded:audio-1", "A mode must use the linked recording");
+  assert.equal(await get(native), "decoded:capture:patch-1", "A mode should prefer a capture recorded directly on the native item");
+  assert.ok(calls.includes("decode-capture:patch-1"));
+  S.captures.clear();
+  assert.equal(await get(native), "decoded:audio-1", "A mode falls back to the linked audio reference");
   assert.ok(calls.includes("decode:audio-1"));
 
   S.auditionMode = "proxy";
@@ -54,7 +62,7 @@ const get = context.__abTest.getAuditionBuffer;
   const unlinked = { id: "patch-2", kind: "native", name: "No reference" };
   assert.equal(await get(unlinked), "proxy:patch-2", "unlinked native sounds remain proxy-auditionable");
 
-  console.log("PASS: A/B selects real reference vs native proxy; raw SysEx never becomes synthetic audio.");
+  console.log("PASS: A/B selects direct capture or linked reference vs native proxy; raw SysEx never becomes synthetic audio.");
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;
