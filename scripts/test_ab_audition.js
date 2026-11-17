@@ -6,10 +6,10 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 const html = fs.readFileSync("index.html", "utf8");
-const start = html.indexOf("async function getAuditionBuffer(i){");
-const end = html.indexOf("async function play(fromSeries=false)", start);
-assert.notEqual(start, -1, "A/B audition buffer selector must exist");
-assert.notEqual(end, -1, "playback function boundary must exist");
+const start = html.indexOf("async function getBaseAuditionBuffer(i){");
+const end = html.indexOf("async function getAuditionBuffer(i){", start);
+assert.notEqual(start, -1, "base A/B audition buffer selector must exist");
+assert.notEqual(end, -1, "edited-buffer wrapper boundary must exist");
 
 const calls = [];
 const native = { id: "patch-1", kind: "native", ref: "audio-1", name: "Patch", key: null };
@@ -36,10 +36,10 @@ async function ctx() {
 }
 function proxy(item) { calls.push("proxy:" + item.id); return "proxy:" + item.id; }
 
-const source = html.slice(start, end) + "\nglobalThis.__abTest={getAuditionBuffer};";
+const source = html.slice(start, end) + "\nglobalThis.__abTest={getBaseAuditionBuffer};";
 const context = { S, E, decode, ctx, proxy, Error };
 vm.runInNewContext(source, context, { timeout: 2000 });
-const get = context.__abTest.getAuditionBuffer;
+const get = context.__abTest.getBaseAuditionBuffer;
 
 (async () => {
   assert.equal(await get(native), "decoded:capture:patch-1", "A mode should prefer a capture recorded directly on the native item");
