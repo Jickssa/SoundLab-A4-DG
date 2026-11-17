@@ -1,4 +1,4 @@
-# SoundLab v3.3 — test plan
+# SoundLab v3.4 — test plan
 
 This checklist is for reproducible community tests. Distinguish static checks, browser-only checks and physical-device checks. Do not use irreplaceable sound banks or an unbacked-up instrument.
 
@@ -7,6 +7,8 @@ Run:
 ```sh
 python3 scripts/check_html.py
 node scripts/test_parsers.js
+node scripts/test_persistence.js
+node scripts/test_audio_inspector.js
 python3 - <<'PY'
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
@@ -16,36 +18,35 @@ PY
 node --check /tmp/soundlab.js
 python3 scripts/package_portable.py
 ```
-GitHub Actions runs the checks and uploads the portable ZIP artifact.
+GitHub Actions runs the same checks and uploads the portable ZIP artifact.
 
 ## Browser test matrix
 - [ ] Open the standalone file in Chrome / Edge.
 - [ ] Import one WAV and verify playback, waveform and WAV export.
 - [ ] Import one supported compressed audio file; record any browser/codec failure.
-- [ ] Import one AFSND and one DNSND; verify they are listed as native sounds and rendered as proxy previews only.
-- [ ] Change attack, release, width and reverb separately; regenerate and confirm the preview changes.
+- [ ] Verify audio facts show duration, sample rate, channel count and sampled peak/RMS.
+- [ ] Change waveform zoom and horizontal position; verify the visible window changes.
+- [ ] Change monitoring gain during playback; verify loudness changes while exported WAV remains source-level.
+- [ ] Import one AFSND and one DNSND; verify proxy-only preview.
+- [ ] Change attack, release, width and reverb separately; regenerate and confirm the proxy changes.
 - [ ] Link a real audio file to a native sound; verify Play and WAV export use that recording.
 - [ ] Capture a short audio input and verify the exported extension matches the recording format.
-- [ ] Select at least three playable items and test sequential audition; confirm it advances until the end.
+- [ ] Select at least three playable items and test sequential audition.
 - [ ] Import the same path twice; verify duplicate detection.
 - [ ] Import a small ZIP with stored and deflate entries; verify CRC and nested archive handling.
-- [ ] Verify encrypted, ZIP64, oversized and malformed ZIPs are rejected with a useful log.
+- [ ] Verify encrypted, ZIP64, oversized and malformed ZIPs are rejected.
 - [ ] Import a SysEx file; verify raw messages are not marked as audio-previewable.
-- [ ] Verify an explicit target and the acknowledgement checkbox are required before sending.
-- [ ] Test MIDI IN event summaries with a harmless controller or keyboard.
+- [ ] Verify explicit target selection and acknowledgement are required before sending.
 
 ## IndexedDB persistence checks
-- [ ] Import multiple files including one native sound and one audio file; mark a favourite and link the audio file to the sound.
-- [ ] Record a short audio capture.
-- [ ] Click **Save locally** and confirm the status reports the saved item and capture counts.
-- [ ] Reload the application using the same browser profile and exact same origin.
-- [ ] Click **Restore**; verify files, names, favourites, audio link, capture and preview metadata are restored.
-- [ ] Play one restored audio file and one restored native proxy preview; verify they regenerate/decode on demand.
-- [ ] Click **Delete backup**; verify the persistent copy is removed but the current session remains.
-- [ ] Repeat with browser storage disabled or quota exhausted; confirm a useful error appears and the current session is not silently cleared.
+- [ ] Save a library containing one native sound, one audio file, a favourite, an audio link and a capture.
+- [ ] Reload on the same browser profile and exact same origin; restore.
+- [ ] Verify binaries, metadata, favourites, links and capture are restored.
+- [ ] Delete the persistent backup; verify the open session remains.
+- [ ] Repeat with storage disabled/quota exhausted; verify a useful error appears.
 
 ## Hardware validation — optional, not implied by CI
-Only use a backed-up instrument and a known-safe, model-specific test message. Verify the instrument receive menu and exact destination. Test one message first. Record whether the instrument itself confirms receipt and whether the expected data appears. Browser queueing alone is not a pass.
+Only use a backed-up instrument and a known-safe, model-specific test message. Verify the receive mode and exact destination. Test one message first. Browser queueing alone is not a pass.
 
 ## Report format
 Include SoundLab commit, instrument/model and OS version, computer OS, browser version, MIDI/audio interface, file extension and size, steps, expected result, observed result and sanitized logs. Never attach commercial sound packs, firmware, private dumps, serial numbers or personal data.
