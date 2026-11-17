@@ -514,8 +514,9 @@ function exportEditedWav(){
 }
 async function createEditedCopy(){
  const st=S.editorState,i=current();if(!st||!i)return;
- const blob=wav(st.buffer),name=editorFilename(i.name)+'_edited.wav';
+ const blob=wav(st.buffer),name=editorFilename(i.name)+'_edited.wav',sourceKey=st.key;
  const copy=item({name,path:'edited/'+name,ext:'wav',kind:'audio',size:blob.size,blob,status:'Edited copy · source preserved',previewable:true,category:i.category||'audio'});
+ S.edits.delete(sourceKey);if(S.editorState===st)S.editorState=null;
  S.items.push(copy);S.selected=copy.id;S.auditionMode='proxy';render();renderDetail(copy);
  editorSetStatus('Copie ajoutée à la bibliothèque. L’original et le son natif restent inchangés.');
  if(S.editorOpen){try{await ensureVisualEditor();wave(S.editorState.buffer);updateEditorUI()}catch(e){editorSetStatus(e.message,true)}}
