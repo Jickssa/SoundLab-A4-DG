@@ -14,7 +14,7 @@ Path("/tmp/soundlab.js").write_text(js, encoding="utf-8")
 PY
 node --check /tmp/soundlab.js
 ```
-GitHub Actions runs the same checks on pushes and pull requests.
+GitHub Actions runs the same checks on pushes and pull requests, then builds and uploads a portable ZIP bundle. Download it from the successful run's Artifacts section.
 
 ## Browser test matrix
 - [ ] Open the standalone file in Chrome / Edge.
