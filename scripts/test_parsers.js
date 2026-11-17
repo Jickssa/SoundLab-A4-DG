@@ -121,6 +121,12 @@ function makeStoredZip(filename, payload) {
   assert.match(html, /async function deleteLocalLibrary\(\)/);
   assert.match(html, /recordType:'capture'/);
   assert.match(html, /localStatus/);
+  assert.match(html, /indexedDB\.open\('ElektronSoundLabLibrary',1\)/);
+  assert.match(html, /async function saveLocalLibrary\(\)/);
+  assert.match(html, /async function restoreLocalLibrary\(\)/);
+  assert.match(html, /async function deleteLocalLibrary\(\)/);
+  assert.match(html, /recordType:'capture'/);
+  assert.match(html, /localStatus/);
 
   console.log("PASS: ZIP round-trip, CRC rejection, expansion cap, SysEx framing and v3.2 safety/audition invariants.");
 })().catch((error) => {
