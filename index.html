@@ -313,10 +313,10 @@ function pushEditorHistory(state,entry){
  const bytes=historyEntryBytes(entry);
  if(bytes>MAX_EDITOR_HISTORY_BYTES)return false;
  clearRedoHistory(state);
- while(state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES&&state.undo.length){
+ while((state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES||sessionEditorBytes()+bytes>MAX_EDITOR_SESSION_BYTES)&&state.undo.length){
   const dropped=state.undo.shift();state.historyBytes-=historyEntryBytes(dropped);
  }
- if(state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES)return false;
+ if(state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES||sessionEditorBytes()+bytes>MAX_EDITOR_SESSION_BYTES)return false;
  state.undo.push(entry);state.historyBytes+=bytes;
  return true;
 }
