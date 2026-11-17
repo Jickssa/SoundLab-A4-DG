@@ -121,6 +121,11 @@ function makeStoredZip(filename, payload) {
   assert.match(html, /async function deleteLocalLibrary\(\)/);
   assert.match(html, /recordType:'capture'/);
   assert.match(html, /localStatus/);
+  assert.match(html, /function showAudioFacts\(b\)/);
+  assert.match(html, /function dbfs\(value\)/);
+  assert.match(html, /src\.connect\(gain\);gain\.connect\(ac\.destination\)/);
+  assert.match(html, /E\.waveZoom\.oninput/);
+  assert.match(html, /E\.waveOffset\.oninput/);
   assert.match(html, /indexedDB\.open\('ElektronSoundLabLibrary',1\)/);
   assert.match(html, /async function saveLocalLibrary\(\)/);
   assert.match(html, /async function restoreLocalLibrary\(\)/);
