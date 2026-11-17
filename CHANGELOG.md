@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.6 — Sound SysEx inspection
+- Identify the supported individual Elektron Sound SysEx frame subtype for Analog Four / Analog Keys and Digitone MK1.
+- Validate manufacturer/model IDs, Sound prefix, 8-in-7 payload, checksum and length before exposing Sound metadata.
+- Extract Sound slot, name and model-specific tags without claiming synthesis-parameter decoding.
+- Restrict MIDI queueing to validated Sound frames whose model matches the selected target; other SysEx remains inventory-only.
+- Add synthetic parser regression fixtures for A4 and Digitone, including malformed and mismatched frames.
+- Document the observed format, external research references and hardware-validation boundary.
+
 ## 3.5 — A/B audition
 - Add A/B audition between a direct instrument input capture or linked imported audio (A) and the native sound proxy (B).
 - Prefer a direct capture attached to the selected patch; fall back to its linked audio file.
