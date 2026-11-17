@@ -22,6 +22,14 @@ For accurate audition, load the sound into the physical instrument using its sup
 - Obvious firmware/OS/bootloader names are blocked heuristically, but this cannot detect every firmware payload. **Never send unidentified, firmware, OS or bootloader data.**
 - These gates reduce accidental sending; they do not prove that a dump is safe, compatible, or correctly addressed.
 
+## Local persistence in v3.3
+- Optional manual save/restore uses IndexedDB in the current browser profile and origin.
+- No sound data is sent to GitHub, a server or a cloud service by these controls.
+- Browser storage can be cleared, evicted or made unavailable by browser settings; quotas vary.
+- A local IndexedDB copy is not a guaranteed archive and does not replace the original source files or independent backups.
+- Use the same origin and browser profile to restore (for example, do not switch between `file://` and `http://localhost:8765`).
+- The application does not persist decoded AudioBuffer caches or temporary object URLs; they are rebuilt when needed. Captured audio blobs are persisted as source blobs.
+
 ## Before sending SysEx
 1. Back up the receiving instrument and relevant banks.
 2. Verify the source and exact target model independently.
@@ -41,4 +49,4 @@ For accurate audition, load the sound into the physical instrument using its sup
 These are defensive client-side bounds, not a guarantee that every malformed archive is harmless. Import files only from sources you trust.
 
 ## Privacy
-Processing is local in the current browser tab; there is no upload backend. Imported files and temporary recordings may be lost when the tab is refreshed or closed. Do not import untrusted archives.
+Imported files, captures and saved library records stay in the browser's local storage mechanisms; there is no upload backend. Do not import untrusted archives or treat browser storage as a secure backup.
