@@ -2,6 +2,14 @@
 
 This roadmap separates practical improvements from unverified reverse-engineering work. Completed items refer to development branches, not hardware certification.
 
+## Completed in v3.7
+- [x] Add visual waveform editor with zoom-aware mouse/touch range selection.
+- [x] Add drawn gain envelope with selected-range or visible-range scope.
+- [x] Add gain, fades, −1 dBFS normalization, reverse, silence and trim.
+- [x] Add bounded undo/redo, selection playback, WAV export and editable-copy creation.
+- [x] Keep source files/captures/native payloads unchanged and separate A/B edit states.
+- [x] Add regression coverage for source isolation, edit scope, multichannel operations and history.
+
 ## Completed in v3.6
 - [x] Recognize the individual Sound SysEx subtype for Analog Four / Analog Keys and Digitone MK1.
 - [x] Validate model, Sound prefix, 8-in-7 payload, checksum and length before extracting slot/name/tags.
