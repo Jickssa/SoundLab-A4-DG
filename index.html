@@ -49,14 +49,14 @@
   <button id="edApplyGain" class="small">Appliquer gain</button><button id="edFadeIn" class="small">Fondu entrée</button><button id="edFadeOut" class="small">Fondu sortie</button><button id="edNormalize" class="small">Normaliser −1 dBFS</button><button id="edReverse" class="small">Inverser</button><button id="edSilence" class="small">Silence</button><button id="edTrim" class="small">Rogner à la sélection</button>
  </div>
  <div class="editoractions">
-  <button id="edUndo" class="small" disabled>Annuler</button><button id="edRedo" class="small" disabled>Rétablir</button><button id="edReset" class="small">Réinitialiser</button><button id="edExport" class="small">Exporter WAV édité</button><button id="edCopy" class="small good">Créer une copie</button>
+  <button id="edUndo" class="small" disabled>Annuler</button><button id="edRedo" class="small" disabled>Rétablir</button><button id="edReset" class="small">Réinitialiser</button><button id="edDiscard" class="small">Libérer mémoire</button><button id="edExport" class="small">Exporter WAV édité</button><button id="edCopy" class="small good">Créer une copie</button>
  </div>
  <div id="edStatus" class="info">Le fichier d’origine n’est jamais modifié. Les modifications s’appliquent à une copie audio en mémoire.</div>
 </div><div class="row"><button id="play" class="primary">Lire</button><button id="stop">Stop</button><button id="prev" class="small">Précédent</button><button id="next" class="small">Suivant</button><button id="loop" class="small">Boucle : non</button></div><div class="row" style="margin-top:8px"><div class="progress"><i id="playProgress"></i></div><button id="render" class="small">Régénérer proxy</button><button id="exportWav" class="small">Exporter WAV</button></div><div class="slider" style="margin-top:9px"><label>Volume d'écoute <output id="vPreviewGain">100 %</output></label><input id="previewGain" type="range" min="0" max="150" value="100"></div><div class="subhead"><b>Paramètres proxy</b><button id="favorite" class="small">☆ Favori</button></div><div class="sliders"><div class="slider"><label>Brillance <output id="vBright">55</output></label><input id="bright" type="range" min="0" max="100" value="55"></div><div class="slider"><label>Modulation <output id="vFm">45</output></label><input id="fmAmount" type="range" min="0" max="100" value="45"></div><div class="slider"><label>Attaque <output id="vAttack">10</output></label><input id="attack" type="range" min="0" max="100" value="10"></div><div class="slider"><label>Relâchement <output id="vRelease">55</output></label><input id="release" type="range" min="0" max="100" value="55"></div><div class="slider"><label>Largeur <output id="vWidth">65</output></label><input id="width" type="range" min="0" max="100" value="65"></div><div class="slider"><label>Réverbération <output id="vReverb">15</output></label><input id="reverb" type="range" min="0" max="100" value="15"></div></div><div class="subhead"><b>Analyse</b></div><div id="analysis" class="info">—</div><div class="subhead"><b>Référence audio réelle</b></div><div class="row"><button id="linkAudio" class="small">Lier audio sélectionné</button><button id="unlinkAudio" class="small">Délier</button></div><div class="row" style="margin-top:7px"><button id="auditionA" class="small primary">A · Capture réelle</button><button id="auditionB" class="small">B · Proxy</button><span id="abStatus" class="note">Associer une capture pour comparer A/B.</span></div><div class="row" style="margin-top:7px"><button id="capture" class="small">Capturer 6 s</button><button id="playCapture" class="small">Lire capture</button><button id="exportCapture" class="small">Exporter capture</button></div><p class="note">Relier la sortie de la machine à l'entrée audio PC et jouer le patch pendant la capture.</p><div class="subhead"><b>MIDI / SysEx</b></div><div class="row"><button id="sendCurrent" class="good">Envoyer SysEx</button><button id="sendAndNote" class="small">Envoyer + note test</button><button id="noteTest" class="small">Note seule</button></div><div class="row" style="margin-top:7px"><button id="downloadSource" class="small">Télécharger original</button></div></div></div></aside>
 </div>
 <script>
 (()=>{'use strict';
-const $=s=>document.querySelector(s),E={};['drop','fileInput','dirInput','nItems','nSelected','nPreview','nSyx','midiOut','midiIn','midiEnable','midiRefresh','target','midiChannel','midiNote','sysexAck','synthMode','previewNote','previewDuration','selectVisible','deselectAll','exportInventory','clearLibrary','saveLocal','restoreLocal','deleteLocal','localStatus','search','kindFilter','statusFilter','deviceFilter','playSeries','sendSelected','cancelSend','queueProgress','queueLabel','sendDelay','selectAll','rows','log','noItem','inspector','detailName','detailPath','tags','meta','engineLabel','wave','play','stop','prev','next','loop','render','exportWav','favorite','bright','fmAmount','attack','release','width','reverb','vBright','vFm','vAttack','vRelease','vWidth','vReverb','analysis','audioFacts','waveZoom','waveOffset','vWaveZoom','vWaveOffset','previewGain','vPreviewGain','auditionA','auditionB','abStatus','linkAudio','unlinkAudio','capture','playCapture','exportCapture','sendCurrent','sendAndNote','noteTest','downloadSource','playProgress','editOpen','editAvailability','visualEditor','editDirty','edSelect','edEnvelope','edPlaySelection','edSelection','edGain','vEdGain','edApplyGain','edFadeIn','edFadeOut','edNormalize','edReverse','edSilence','edTrim','edUndo','edRedo','edReset','edExport','edCopy','edStatus'].forEach(k=>E[k]=$('#'+k));
+const $=s=>document.querySelector(s),E={};['drop','fileInput','dirInput','nItems','nSelected','nPreview','nSyx','midiOut','midiIn','midiEnable','midiRefresh','target','midiChannel','midiNote','sysexAck','synthMode','previewNote','previewDuration','selectVisible','deselectAll','exportInventory','clearLibrary','saveLocal','restoreLocal','deleteLocal','localStatus','search','kindFilter','statusFilter','deviceFilter','playSeries','sendSelected','cancelSend','queueProgress','queueLabel','sendDelay','selectAll','rows','log','noItem','inspector','detailName','detailPath','tags','meta','engineLabel','wave','play','stop','prev','next','loop','render','exportWav','favorite','bright','fmAmount','attack','release','width','reverb','vBright','vFm','vAttack','vRelease','vWidth','vReverb','analysis','audioFacts','waveZoom','waveOffset','vWaveZoom','vWaveOffset','previewGain','vPreviewGain','auditionA','auditionB','abStatus','linkAudio','unlinkAudio','capture','playCapture','exportCapture','sendCurrent','sendAndNote','noteTest','downloadSource','playProgress','editOpen','editAvailability','visualEditor','editDirty','edSelect','edEnvelope','edPlaySelection','edSelection','edGain','vEdGain','edApplyGain','edFadeIn','edFadeOut','edNormalize','edReverse','edSilence','edTrim','edUndo','edRedo','edReset','edDiscard','edExport','edCopy','edStatus'].forEach(k=>E[k]=$('#'+k));
 const AUDIO=new Set(['wav','aif','aiff','mp3','ogg','oga','flac','m4a','aac','webm']);
 const LIMITS={maxZipBytes:128*1024*1024,maxEntryBytes:64*1024*1024,maxExpandedBytes:256*1024*1024,maxEntries:2048,maxSourceBytes:256*1024*1024,maxBatch:128,maxSysexBytes:8192};
 const S={items:[],selected:null,midi:null,ctx:null,source:null,buffer:null,playStart:0,loop:false,raf:null,captures:new Map(),series:{ids:[],index:0,active:false},queueBusy:false,cancelQueue:false,expandedBytes:0,midiInput:null,midiLogAt:0,dbPromise:null,gainNode:null,externalAudio:null,waveBuffer:null,auditionMode:'proxy',edits:new Map(),editorOpen:false,editorMode:'select',editorState:null,editorPointer:null,envelopePreview:[],editorNeedsRefresh:false};const sleep=ms=>new Promise(r=>setTimeout(r,ms)),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -289,7 +289,9 @@ function showAudioFacts(b){
 
 const MAX_EDITOR_BUFFER_BYTES=128*1024*1024;
 const MAX_EDITOR_HISTORY_BYTES=128*1024*1024;
+const MAX_EDITOR_SESSION_BYTES=256*1024*1024;
 function audioBufferBytes(b){return b.length*b.numberOfChannels*4}
+function sessionEditorBytes(){let total=0;for(const state of S.edits.values())total+=audioBufferBytes(state.buffer)+(state.historyBytes||0);return total}
 function cloneAudioBuffer(source){
  const ac=S.ctx||null;
  if(!ac)throw Error('Audio context is not initialized');
@@ -352,12 +354,12 @@ function editorSetStatus(message,isError=false){
 }
 function updateEditorUI(){
  const st=S.editorState;
- if(!st){E.edSelection.textContent='Aucun son chargé dans l’éditeur.';E.edUndo.disabled=true;E.edRedo.disabled=true;E.editDirty.textContent='—';return}
+ if(!st){E.edSelection.textContent='Aucun son chargé dans l’éditeur.';E.edUndo.disabled=true;E.edRedo.disabled=true;E.edDiscard.disabled=true;E.editDirty.textContent='—';return}
  const rate=st.buffer.sampleRate,sel=st.selection;
  E.edSelection.textContent=sel&&sel.end>sel.start
   ?'Sélection : '+(sel.start/rate).toFixed(3)+' s → '+(sel.end/rate).toFixed(3)+' s · '+((sel.end-sel.start)/rate).toFixed(3)+' s'
   :'Aucune sélection · toute la piste';
- E.edUndo.disabled=!st.undo.length;E.edRedo.disabled=!st.redo.length;
+ E.edUndo.disabled=!st.undo.length;E.edRedo.disabled=!st.redo.length;E.edDiscard.disabled=false;
  E.editDirty.textContent=st.dirty?'Modifié':'Original';
  E.editDirty.className='badge '+(st.dirty?'b-warn':'b-ok');
  E.edSelect.classList.toggle('active',S.editorMode==='select');
@@ -372,8 +374,11 @@ async function ensureVisualEditor(){
  const baseBuffer=await getBaseAuditionBuffer(i),key=editorKey(i),token=editorSourceToken(i);
  let state=S.edits.get(key);
  if(state&&state.token===token){S.editorState=state;return state}
+ if(state){S.edits.delete(key);if(S.editorState===state)S.editorState=null}
  const bytes=audioBufferBytes(baseBuffer);
  if(bytes>MAX_EDITOR_BUFFER_BYTES)throw Error('Piste trop volumineuse pour l’édition en mémoire (limite 128 Mio). Réduire ou convertir le fichier avant import.');
+ const used=sessionEditorBytes();
+ if(used+bytes>MAX_EDITOR_SESSION_BYTES)throw Error('Budget mémoire de session atteint (256 Mio pour les copies éditables et leur historique). Sélectionne une piste déjà éditée et utilise « Libérer mémoire », après export ou création d’une copie.');
  await ctx();
  const copy=cloneAudioBuffer(baseBuffer);
  state={key,token,buffer:copy,selection:null,undo:[],redo:[],historyBytes:0,dirty:false};
@@ -491,6 +496,17 @@ async function resetEditor(){
  }catch(e){editorSetStatus(e.message,true)}
 }
 function editorFilename(name){return String(name||'sound').replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80)||'sound'}
+function discardVisualEdit(){
+ const i=current();if(!i)return;
+ const key=editorKey(i),state=S.edits.get(key);
+ if(!state){editorSetStatus('Aucune copie d’édition à libérer.');return}
+ if(state.dirty&&!confirm('Abandonner les modifications non exportées de cette piste ? Le fichier source restera intact.'))return;
+ S.edits.delete(key);if(S.editorState===state)S.editorState=null;
+ S.editorOpen=false;S.editorNeedsRefresh=false;S.visualEditor?.classList?.add('hidden');
+ E.visualEditor.classList.add('hidden');E.wave.parentElement.classList.remove('editing');E.editOpen.textContent='Ouvrir l’éditeur visuel';
+ getBaseAuditionBuffer(i).then(wave).catch(e=>editorSetStatus(e.message,true));
+ editorSetStatus('Copie de travail et historique libérés. La source est intacte.');
+}
 function exportEditedWav(){
  const st=S.editorState,i=current();if(!st||!i)return;
  dl(wav(st.buffer),editorFilename(i.name)+'_edited.wav');
@@ -499,7 +515,7 @@ function exportEditedWav(){
 async function createEditedCopy(){
  const st=S.editorState,i=current();if(!st||!i)return;
  const blob=wav(st.buffer),name=editorFilename(i.name)+'_edited.wav';
- const copy=item({name,path:'edited/'+name,ext:'wav',kind:'audio',size:blob.size,blob,buffer:st.buffer,status:'Edited copy · source preserved',previewable:true,category:i.category||'audio'});
+ const copy=item({name,path:'edited/'+name,ext:'wav',kind:'audio',size:blob.size,blob,status:'Edited copy · source preserved',previewable:true,category:i.category||'audio'});
  S.items.push(copy);S.selected=copy.id;S.auditionMode='proxy';render();renderDetail(copy);
  editorSetStatus('Copie ajoutée à la bibliothèque. L’original et le son natif restent inchangés.');
  if(S.editorOpen){try{await ensureVisualEditor();wave(S.editorState.buffer);updateEditorUI()}catch(e){editorSetStatus(e.message,true)}}
@@ -694,7 +710,7 @@ function stats(){E.nItems.textContent=S.items.length;E.nSelected.textContent=S.i
  E.editAvailability.textContent=canOpenVisualEditor(i)?'Édition non destructive · original préservé':'Aucun signal audio à éditer pour cet élément';
  let edit=S.edits.get(editorKey(i));
  if(edit&&edit.token!==editorSourceToken(i)){S.edits.delete(editorKey(i));if(S.editorState===edit)S.editorState=null;edit=null}
- if(edit){S.editorState=edit;wave(edit.buffer)}
+ if(edit){S.editorState=edit;E.edDiscard.disabled=false;wave(edit.buffer)}else E.edDiscard.disabled=true;
  else if(i.preview){wave(i.preview)}else if(i.buffer){wave(i.buffer)}else{clearWave()}
  if(S.editorOpen&&!canOpenVisualEditor(i)){S.editorOpen=false;E.visualEditor.classList.add('hidden');E.editOpen.textContent='Ouvrir l’éditeur visuel'}
 }
@@ -851,7 +867,7 @@ function wire(){E.fileInput.onchange=e=>importFiles(e.target.files);E.dirInput.o
  E.edGain.oninput=()=>{E.vEdGain.value=E.edGain.value+' %'};
  E.edApplyGain.onclick=applyEditorGain;E.edFadeIn.onclick=()=>applyEditorFade('in');E.edFadeOut.onclick=()=>applyEditorFade('out');
  E.edNormalize.onclick=applyEditorNormalize;E.edReverse.onclick=applyEditorReverse;E.edSilence.onclick=applyEditorSilence;E.edTrim.onclick=applyEditorTrim;
- E.edUndo.onclick=undoEditor;E.edRedo.onclick=redoEditor;E.edReset.onclick=resetEditor;E.edExport.onclick=exportEditedWav;
+ E.edUndo.onclick=undoEditor;E.edRedo.onclick=redoEditor;E.edReset.onclick=resetEditor;E.edDiscard.onclick=discardVisualEdit;E.edExport.onclick=exportEditedWav;
  E.edCopy.onclick=createEditedCopy;E.edPlaySelection.onclick=playEditorSelection;
 
  E.previewGain.oninput=()=>{E.vPreviewGain.value=E.previewGain.value+' %';if(S.gainNode&&S.ctx)S.gainNode.gain.setTargetAtTime(clamp(+E.previewGain.value/100,0,1.5),S.ctx.currentTime,.015)};E.selectVisible.onclick=()=>{for(const r of E.rows.querySelectorAll('tr')){const x=S.items.find(z=>z.id===r.dataset.id);if(x)x.selected=true}render()};E.deselectAll.onclick=()=>{S.items.forEach(x=>x.selected=false);render()};E.playSeries.onclick=series;E.selectAll.onchange=e=>{S.items.forEach(x=>{x.selected=e.target.checked});render()};E.sendSelected.onclick=sendBatch;E.cancelSend.onclick=()=>S.cancelQueue=true;E.exportInventory.onclick=inventory;E.clearLibrary.onclick=clear;E.saveLocal.onclick=saveLocalLibrary;E.restoreLocal.onclick=restoreLocalLibrary;E.deleteLocal.onclick=deleteLocalLibrary;E.play.onclick=()=>play(false);E.stop.onclick=stop;E.prev.onclick=()=>next(-1);E.next.onclick=()=>next(1);E.loop.onclick=()=>{S.loop=!S.loop;E.loop.textContent='Boucle : '+(S.loop?'oui':'non');if(S.source)S.source.loop=S.loop};E.render.onclick=async()=>{const i=current();if(!i)return;await ctx();const k=editorKey(i);if(i.kind==='audio'){wave(await decode(i));return}i.key='';i.preview=proxy(i);wave(i.preview);E.analysis.textContent=i.analysis;S.edits.delete(k);if(S.editorState?.key===k)S.editorState=null;if(S.editorOpen)try{await refreshVisualEditor()}catch(e){editorSetStatus(e.message,true)}};E.exportWav.onclick=exportWav;E.favorite.onclick=()=>{const i=current();if(i){i.favorite=!i.favorite;renderDetail(i);render()}};E.downloadSource.onclick=()=>{const i=current();if(i?.blob)dl(i.blob,i.name)};E.sendCurrent.onclick=()=>send(current());E.target.onchange=()=>{const i=current();if(i)renderDetail(i)};E.sysexAck.onchange=()=>{const i=current();if(i)renderDetail(i)};E.sendAndNote.onclick=async()=>{if(await send(current())){await sleep(350);note()}};E.noteTest.onclick=note;E.capture.onclick=capture;E.playCapture.onclick=playCap;E.exportCapture.onclick=exportCap;E.linkAudio.onclick=linkAudio;E.unlinkAudio.onclick=unlinkAudio;E.auditionA.onclick=async()=>{const i=current();if(!i||!(i.ref||S.captures.has(i.id)||i.kind==='audio'))return;S.auditionMode='reference';renderDetail(i);if(S.editorOpen)try{await refreshVisualEditor()}catch(e){editorSetStatus(e.message,true)}play(false)};E.auditionB.onclick=async()=>{const i=current();if(!i||i.kind!=='native')return;S.auditionMode='proxy';renderDetail(i);if(S.editorOpen)try{await refreshVisualEditor()}catch(e){editorSetStatus(e.message,true)}play(false)};[['bright','vBright'],['fmAmount','vFm'],['attack','vAttack'],['release','vRelease'],['width','vWidth'],['reverb','vReverb']].forEach(([id,out])=>{$('#'+id).oninput=()=>{$('#'+out).value=$('#'+id).value;const i=current();if(i){i.key='';invalidateProxyEditor(i)}};$('#'+id).onchange=()=>finishProxyEditorChange(current())});[E.synthMode,E.previewNote,E.previewDuration].forEach(x=>x.onchange=()=>{const i=current();if(i){i.key='';invalidateProxyEditor(i);finishProxyEditorChange(i)}});window.onkeydown=e=>{if(e.target.matches('input,select,textarea'))return;if(S.editorOpen&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redoEditor():undoEditor();return}if(S.editorOpen&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redoEditor();return}if(e.code==='Space'){e.preventDefault();S.source?stop():play()}if(e.key.toLowerCase()==='n')note()}}clearWave();wire();inspectLocalLibrary();log('SoundLab v3.7 ready. Import AFSND, DNSND, SYX, ZIP or audio files.');render();
