@@ -14,6 +14,8 @@ jobs:
         run: python3 scripts/check_html.py
       - name: Run parser and safety regression tests
         run: node scripts/test_parsers.js
+      - name: Run Elektron Sound SysEx regression tests
+        run: node scripts/test_elektron_sound_sysex.js
       - name: Run IndexedDB persistence regression tests
         run: node scripts/test_persistence.js
       - name: Run audio inspector regression tests
@@ -34,7 +36,7 @@ jobs:
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: Elektron-SoundLab-v3.5-portable-${{ github.sha }}
+          name: Elektron-SoundLab-v3.6-portable-${{ github.sha }}
           path: dist/Elektron-SoundLab-v3.5-portable.zip
           if-no-files-found: error
           retention-days: 30
