@@ -102,4 +102,13 @@ assert.match(inspect(bad7Bit).reason, /7-bit/i);
 assert.throws(() => parser.decodeElektronSoundPayload(Uint8Array.from([0x00])), /8-in-7/i);
 assert.equal(inspect(Uint8Array.from([0xf0, 0x01, 0xf7])).ok, false);
 
+const firmwareStart = html.indexOf("function firmware(i){");
+const firmwareEnd = html.indexOf("async function send(", firmwareStart);
+assert.notEqual(firmwareStart, -1, "missing firmware safety filter");
+assert.notEqual(firmwareEnd, -1, "missing end of firmware safety filter");
+const firmware = new Function(html.slice(firmwareStart, firmwareEnd) + "; return firmware;")();
+assert.equal(firmware({ name: "Analog-Four_Analog-Keys_OS1.56.syx", path: "Analog-Four_Analog-Keys_OS1.56.syx" }), true);
+assert.equal(firmware({ name: "OS 1.55B update.syx", path: "OS 1.55B update.syx" }), true);
+assert.equal(firmware({ name: "Chaos Pad.syx", path: "Chaos Pad.syx" }), false);
+
 console.log("PASS: Analog Four and Digitone Sound SysEx framing, checksum, length, model ID, 7-bit payload, name and tags.");
