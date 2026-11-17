@@ -1,4 +1,4 @@
-# SoundLab v3.2 — test plan
+# SoundLab v3.3 — test plan
 
 This checklist is for reproducible community tests. Distinguish static checks, browser-only checks and physical-device checks. Do not use irreplaceable sound banks or an unbacked-up instrument.
 
@@ -6,6 +6,7 @@ This checklist is for reproducible community tests. Distinguish static checks, b
 Run:
 ```sh
 python3 scripts/check_html.py
+node scripts/test_parsers.js
 python3 - <<'PY'
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
@@ -13,8 +14,9 @@ js = html.split("<script>", 1)[1].split("</script>", 1)[0]
 Path("/tmp/soundlab.js").write_text(js, encoding="utf-8")
 PY
 node --check /tmp/soundlab.js
+python3 scripts/package_portable.py
 ```
-GitHub Actions runs the same checks on pushes and pull requests, then builds and uploads a portable ZIP bundle. Download it from the successful run's Artifacts section.
+GitHub Actions runs the checks and uploads the portable ZIP artifact.
 
 ## Browser test matrix
 - [ ] Open the standalone file in Chrome / Edge.
@@ -31,6 +33,16 @@ GitHub Actions runs the same checks on pushes and pull requests, then builds and
 - [ ] Import a SysEx file; verify raw messages are not marked as audio-previewable.
 - [ ] Verify an explicit target and the acknowledgement checkbox are required before sending.
 - [ ] Test MIDI IN event summaries with a harmless controller or keyboard.
+
+## IndexedDB persistence checks
+- [ ] Import multiple files including one native sound and one audio file; mark a favourite and link the audio file to the sound.
+- [ ] Record a short audio capture.
+- [ ] Click **Save locally** and confirm the status reports the saved item and capture counts.
+- [ ] Reload the application using the same browser profile and exact same origin.
+- [ ] Click **Restore**; verify files, names, favourites, audio link, capture and preview metadata are restored.
+- [ ] Play one restored audio file and one restored native proxy preview; verify they regenerate/decode on demand.
+- [ ] Click **Delete backup**; verify the persistent copy is removed but the current session remains.
+- [ ] Repeat with browser storage disabled or quota exhausted; confirm a useful error appears and the current session is not silently cleared.
 
 ## Hardware validation — optional, not implied by CI
 Only use a backed-up instrument and a known-safe, model-specific test message. Verify the instrument receive menu and exact destination. Test one message first. Record whether the instrument itself confirms receipt and whether the expected data appears. Browser queueing alone is not a pass.
