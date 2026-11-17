@@ -3,6 +3,9 @@
 ## Architecture
 Single-file HTML/CSS/JavaScript app; no build step or external runtime dependency. Web Audio API handles decoding/playback, deterministic proxy generation, WAV encoding and audio-input capture. Web MIDI API is requested with SysEx permission where supported. IndexedDB stores a user-initiated persistent copy of the library.
 
+## A/B audition
+Each native item may have an imported audio reference (`item.ref`) and/or a direct capture blob in `S.captures`. In A/reference mode, the direct capture is preferred; if absent, the linked audio item is decoded. In B/proxy mode, native AFSND/DNSND data is passed to the generic proxy generator. Ordinary audio files always play as their original decoded audio. Other data types such as raw SysEx do not get a proxy sound; an attached reference can only be played in A mode. Export uses the same selection function, so the WAV corresponds to the current A/B mode.
+
 ## File handling
 - **AFSND**: ZIP-like container inspected for manifest, payload and accessible metadata. Manifest schemas may vary; fields are not treated as synthesis parameter values.
 - **DNSND**: raw binary is retained and inspected conservatively. No full proprietary parameter decoder is claimed.
@@ -23,4 +26,4 @@ A deterministic seed derived from input bytes/file identity and controls drives 
 Web MIDI requires browser/device support and explicit permission. The input monitor logs event summaries and suppresses rapid message flooding. Successful output.send() means the browser accepted the request; it is not a target-device acknowledgement. SysEx sending requires explicit target selection and a user safety acknowledgement. Batch size and individual message size are capped. Firmware/OS detection remains heuristic and must not be relied upon to identify safe data.
 
 ## Validation scope
-GitHub Actions checks HTML ID uniqueness, JavaScript selector references, mandatory controls, SysEx acknowledgement markup, IndexedDB and audio-inspector controls, parser regression tests and JavaScript syntax. It also builds and validates the portable ZIP artifact. These checks do not replace physical Digitone and Analog Four tests.
+GitHub Actions checks HTML ID uniqueness, JavaScript selector references, required controls, SysEx acknowledgement markup, IndexedDB and audio-inspector controls, parser/A-B regression tests and JavaScript syntax. It also builds and validates the portable ZIP artifact. These checks do not replace physical Digitone and Analog Four tests.
