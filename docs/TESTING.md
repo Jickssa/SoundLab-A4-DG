@@ -1,4 +1,4 @@
-# SoundLab v3.5 — test plan
+# SoundLab v3.6 — test plan
 
 This checklist is for reproducible community tests. Distinguish static checks, browser-only checks and physical-device checks. Do not use irreplaceable sound banks or an unbacked-up instrument.
 
@@ -7,6 +7,7 @@ Run:
 ```sh
 python3 scripts/check_html.py
 node scripts/test_parsers.js
+node scripts/test_elektron_sound_sysex.js
 node scripts/test_persistence.js
 node scripts/test_audio_inspector.js
 node scripts/test_ab_audition.js
@@ -35,7 +36,11 @@ GitHub Actions runs the same checks and uploads the portable ZIP artifact.
 - [ ] Verify a raw SysEx item is never proxy-auditionable; with a linked audio recording, only A should be available.
 - [ ] Select at least three playable items and test sequential audition.
 - [ ] Test ZIP CRC/size/expansion limits and duplicate import detection.
-- [ ] Verify explicit target selection and acknowledgement are required before sending SysEx.
+- [ ] Import a known A4 / Digitone Sound .syx bank; verify model, slot, name and tags are shown for the recognized individual Sound frames.
+- [ ] Verify messages with a wrong model ID, prefix, checksum, length or 7-bit payload remain non-transferable.
+- [ ] Select a different target model and verify a Sound frame cannot be queued to the mismatched device.
+- [ ] Verify OS/firmware .syx files are not recognized as individual Sound frames and are never offered for sending.
+- [ ] Verify explicit target selection and acknowledgement are required before sending a validated Sound SysEx frame.
 
 ## IndexedDB persistence checks
 - [ ] Save a library with one native sound, one audio file, a favourite, an audio link and a direct capture.
