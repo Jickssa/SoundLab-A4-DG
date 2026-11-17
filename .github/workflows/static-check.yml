@@ -34,7 +34,7 @@ jobs:
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: Elektron-SoundLab-v3.4-portable-${{ github.sha }}
-          path: dist/Elektron-SoundLab-v3.4-portable.zip
+          name: Elektron-SoundLab-v3.5-portable-${{ github.sha }}
+          path: dist/Elektron-SoundLab-v3.5-portable.zip
           if-no-files-found: error
           retention-days: 30
