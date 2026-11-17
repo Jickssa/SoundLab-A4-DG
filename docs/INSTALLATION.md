@@ -21,4 +21,4 @@ The **Save locally**, **Restore** and **Delete backup** controls use IndexedDB i
 AFSND/DNSND files are inspected as binary containers. The built-in proxy engine produces an approximation. For faithful audition, load the patch on the instrument and capture its audio output through an audio interface.
 
 ## Portable distribution
-The latest successful GitHub Actions run publishes a `Elektron-SoundLab-v3.3-portable.zip` artifact. Open the repository's Actions tab, select the latest successful **Static checks** run, and download its artifact.
+The latest successful GitHub Actions run publishes a `Elektron-SoundLab-v3.4-portable.zip` artifact. Open the repository's Actions tab, select the latest successful **Static checks** run, and download its artifact.
