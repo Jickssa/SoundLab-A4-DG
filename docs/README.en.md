@@ -34,8 +34,8 @@ Use **Save locally**, **Restore** and **Delete backup** to manage the browser's 
 
 ## Important limitations
 - Proprietary .afsnd/.dnsnd parameters are not decoded. Proxy playback is an approximation, **not an instrument emulator**. The editor can process proxy audio, but it does not change native preset parameters.
-- The editor operates on an in-memory AudioBuffer copy, limited to 128 MiB per track; undo history is capped at 128 MiB.
-- Session edits are not permanent backups: export the edited WAV or create a library copy, then save the local library.
+- The editor uses in-memory AudioBuffer copies: 128 MiB per track, 128 MiB undo history and 256 MiB total across the session. **Release memory** discards the current item's unexported edit after confirmation.
+- Session edits are not permanent backups: export the edited WAV or create a library copy, then save the local library. Creating a WAV copy adds the result to the library and releases the previous working buffer.
 - A-mode audio is a user-provided recording/capture, not a decode of the proprietary patch.
 - Peak/RMS figures are sampled estimates, not exhaustive offline measurements.
 - SysEx inspection extracts Sound metadata only (model, slot, name, tags); it does not decode synthesis parameters.
