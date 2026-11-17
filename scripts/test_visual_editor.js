@@ -82,22 +82,23 @@ function makeState(channels, selection = null, sampleRate = 4) {
     undo: [], redo: [], historyBytes: 0, dirty: false };
 }
 function values(state, channel = 0) { return Array.from(state.buffer.getChannelData(channel)); }
+function near(actual, expected, epsilon = 1e-6) { return actual.length === expected.length && actual.every((value, index) => Math.abs(value - expected[index]) <= epsilon); }
 function setState(state) { S.editorState = state; S.edits.set(state.key, state); }
 
 (async () => {
   const editor = await api.ensureVisualEditor();
   assert.notEqual(editor.buffer, sourceBuffer, "editing must use a private working buffer");
-  assert.deepEqual(values(editor), [0.2, 0.4, 0.6, 0.8]);
+  assert.ok(near(values(editor), [0.2, 0.4, 0.6, 0.8]));
   editor.selection = { start: 1, end: 3 };
   setState(editor);
   api.applyEditorGain();
-  assert.deepEqual(values(editor), [0.2, 0.2, 0.3, 0.8], "gain must stay inside the selected range");
-  assert.deepEqual(values(editor, 1), [-0.2, -0.2, -0.3, -0.8], "gain must process every channel");
-  assert.deepEqual(values({buffer: sourceBuffer}), [0.2, 0.4, 0.6, 0.8], "source samples must remain untouched");
+  assert.ok(near(values(editor), [0.2, 0.2, 0.3, 0.8]), "gain must stay inside the selected range");
+  assert.ok(near(values(editor, 1), [-0.2, -0.2, -0.3, -0.8]), "gain must process every channel");
+  assert.ok(near(values({buffer: sourceBuffer}), [0.2, 0.4, 0.6, 0.8]), "source samples must remain untouched");
   api.undoEditor();
-  assert.deepEqual(values(editor), [0.2, 0.4, 0.6, 0.8]);
+  assert.ok(near(values(editor), [0.2, 0.4, 0.6, 0.8]));
   api.redoEditor();
-  assert.deepEqual(values(editor), [0.2, 0.2, 0.3, 0.8]);
+  assert.ok(near(values(editor), [0.2, 0.2, 0.3, 0.8]));
 
   let state = makeState([[1, 1, 1, 1]], { start: 0, end: 4 });
   setState(state);
@@ -110,7 +111,7 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   state = makeState([[1, 1, 1, 1]], { start: 0, end: 4 });
   setState(state);
   api.applyEditorFade("out");
-  assert.deepEqual(values(state), [1, 2 / 3, 1 / 3, 0]);
+  assert.ok(near(values(state), [1, 2 / 3, 1 / 3, 0]));
 
   state = makeState([[0, 1, 2, 3, 4]], { start: 1, end: 4 });
   setState(state);
@@ -122,7 +123,7 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   api.applyEditorSilence();
   assert.deepEqual(values(state), [1, 0, 0, 1]);
   api.undoEditor();
-  assert.deepEqual(values(state), [1, 0.5, -0.5, 1]);
+  assert.ok(near(values(state), [1, 0.5, -0.5, 1]));
 
   state = makeState([[0.2, -0.5, 0.1, 0.25]], { start: 0, end: 4 });
   setState(state);
@@ -144,13 +145,13 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   state = makeState([[1, 1, 1, 1, 1]], null);
   setState(state);
   api.applyEditorEnvelope(1, 4, [{ frame: 1, gain: 0 }, { frame: 4, gain: 2 }]);
-  assert.deepEqual(values(state), [1, 0, 2 / 3, 4 / 3, 1], "envelope must affect only its explicit visible range");
+  assert.ok(near(values(state), [1, 0, 2 / 3, 4 / 3, 1]), "envelope must affect only its explicit visible range");
   api.undoEditor();
   assert.deepEqual(values(state), [1, 1, 1, 1, 1], "envelope must be undoable");
 
   await api.resetEditor();
-  assert.deepEqual(values(S.editorState), [0.2, 0.4, 0.6, 0.8], "reset must reload the original decoded buffer");
-  assert.deepEqual(values(sourceBuffer), [0.2, 0.4, 0.6, 0.8], "reset must never mutate imported source samples");
+  assert.ok(near(values(S.editorState), [0.2, 0.4, 0.6, 0.8]), "reset must reload the original decoded buffer");
+  assert.ok(near(values(sourceBuffer), [0.2, 0.4, 0.6, 0.8]), "reset must never mutate imported source samples");
   assert.equal(S.editorState.undo.length, 0);
   assert.ok(visualRedraws > 0);
 
