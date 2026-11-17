@@ -2,9 +2,9 @@
 
 Bibliothèque locale de sons, station de préécoute et utilitaire SysEx prudent pour Analog Four MKI / Analog Keys et Digitone MK1.
 
-[English](README.en.md) · [Installation](INSTALLATION.md) · [Limites](LIMITATIONS.md) · [Tests](TESTING.md) · [Roadmap](../ROADMAP.md) · [Contribuer](../CONTRIBUTING.md) · [Sécurité](../SECURITY.md)
+[English](README.en.md) · [Installation](INSTALLATION.md) · [Limites](LIMITATIONS.md) · [Tests](TESTING.md) · [Format SysEx Sound](SYSEX_SOUND_FORMAT.md) · [Roadmap](../ROADMAP.md) · [Contribuer](../CONTRIBUTING.md) · [Sécurité](../SECURITY.md)
 
-> **Version 3.5 — expérimentale, tests communautaires nécessaires.** Projet indépendant, sans affiliation avec Elektron. SoundLab ne remplace pas Elektron Transfer.
+> **Version 3.6 — expérimentale, tests communautaires nécessaires.** Projet indépendant, sans affiliation avec Elektron. SoundLab ne remplace pas Elektron Transfer.
 
 ## Démarrage
 Ouvrir `index.html` dans Chrome ou Edge récents. La lecture audio et l'inspection fonctionnent localement. Pour Web MIDI/SysEx et la capture audio sous Windows, exécuter `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 requis), puis ouvrir `http://localhost:8765`.
@@ -12,13 +12,14 @@ Ouvrir `index.html` dans Chrome ou Edge récents. La lecture audio et l'inspecti
 ## Fonctions
 - Inventaire AFSND, DNSND, SysEx, audio, ZIP et projets.
 - Extraction des manifestes et tags accessibles des AFSND.
+- Inspection structurée des messages Sound SysEx A4 / Digitone : modèle, slot, nom, tags, checksum et longueur.
 - Lecture audio, synthèse proxy analogique/FM/percussion et export WAV.
 - Association d'un fichier audio réel importé ou d'une capture directe de la machine à un son natif.
 - **Écoute A/B** : A lit la référence réelle (fichier importé ou capture associée) ; B lit le proxy synthétique du patch natif. L'export WAV suit le mode sélectionné.
 - Inspecteur audio : durée, fréquence d'échantillonnage, nombre de canaux et estimations crête/RMS échantillonnées.
 - Zoom et déplacement horizontal de la forme d'onde ; volume de monitoring indépendant.
 - Filtres, favoris, lecture séquentielle, inventaire JSON et monitoring MIDI IN.
-- Envoi SysEx sous garde : sélection explicite de l'appareil, reconnaissance des risques, confirmation et limites.
+- Mise en file limitée aux messages Sound SysEx reconnus et valides, avec correspondance obligatoire entre modèle du message et cible sélectionnée. Les autres messages restent non transférables.
 - Sauvegarde/restauration facultative en IndexedDB dans le profil et l'origine du navigateur.
 
 ## Comparaison A/B
@@ -33,7 +34,9 @@ Les boutons **Sauvegarder localement**, **Restaurer** et **Effacer sauvegarde** 
 - Les paramètres propriétaires des .afsnd/.dnsnd ne sont pas décodés. La préécoute proxy est une approximation, **pas un émulateur**.
 - La référence A est une capture/fichier réel associé ; elle ne constitue pas un décodage du patch propriétaire.
 - Les mesures crête/RMS sont échantillonnées et approximatives ; elles ne remplacent pas une analyse audio hors ligne exhaustive.
-- Le protocole natif USB-MIDI d'Elektron Transfer n'est pas implémenté. Les sons natifs ne sont pas envoyés comme SysEx.
+- L'inspection SysEx ne décode que les métadonnées Sound (modèle, slot, nom, tags) ; aucun paramètre de synthèse n'est décodé.
+- Les messages SysEx autres que les Sounds individuels reconnus ne sont pas proposés à l'envoi. Les checksums et longueurs vérifiés ne constituent pas une certification de compatibilité matérielle.
+- Le protocole natif USB-MIDI d'Elektron Transfer n'est pas implémenté. Les conteneurs .afsnd/.dnsnd ne sont pas transférés comme SysEx.
 - La mise en file Web MIDI ne prouve pas la réception ni l'écriture sur la machine.
 - Transfert de projets et de firmware exclu.
 
