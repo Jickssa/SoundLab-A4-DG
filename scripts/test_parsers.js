@@ -112,7 +112,7 @@ function makeStoredZip(filename, payload) {
   assert.match(syxSource, /previewable:false/);
   assert.match(html, /if\(!\['a4','dn'\]\.includes\(E\.target\.value\)\)/);
   assert.match(html, /E\.sysexAck\.checked/);
-  assert.match(html, /const attack=\+E\.attack\.value/);
+  assert.match(html, /attack=\+E\.attack\.value/);
   assert.match(html, /wet=\+E\.reverb\.value/);
   assert.match(html, /play\(true\)/);
 
