@@ -252,7 +252,7 @@ function openLibraryDB(){
    resolve(db);
   };
   req.onerror=()=>{S.dbPromise=null;reject(req.error||new Error('Unable to open IndexedDB'))};
-  req.onblocked=()=>{S.localStatus.textContent='IndexedDB bloqué par un autre onglet ; fermer les autres onglets SoundLab.'};
+  req.onblocked=()=>{updateLocalStatus('IndexedDB bloqué par un autre onglet ; fermer les autres onglets SoundLab.')};
  });
  return S.dbPromise;
 }
