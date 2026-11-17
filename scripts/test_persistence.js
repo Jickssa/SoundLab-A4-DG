@@ -27,7 +27,7 @@ class FakeStore {
   }
   getAll() {
     const req = {};
-    this.tx.schedule(() => { req.result = [...this.db.records.values()].map(structuredClone); req.onsuccess?.(); });
+    this.tx.schedule(() => { req.result = [...this.db.records.values()].map(record => structuredClone(record)); req.onsuccess?.(); });
     return req;
   }
 }
@@ -57,10 +57,12 @@ class FakeTransaction {
 class FakeDatabase {
   constructor() {
     this.records = new Map();
-    this.objectStoreNames = { contains: name => name === "entries" };
+    this.hasEntries = false;
+    this.objectStoreNames = { contains: name => name === "entries" && this.hasEntries };
   }
   createObjectStore(name) {
     assert.equal(name, "entries");
+    this.hasEntries = true;
     return new FakeStore(this, new FakeTransaction(this));
   }
   transaction(name, mode) {
