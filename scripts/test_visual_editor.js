@@ -152,7 +152,7 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
 
   await api.resetEditor();
   assert.ok(near(values(S.editorState), [0.2, 0.4, 0.6, 0.8]), "reset must reload the original decoded buffer");
-  assert.ok(near(values(sourceBuffer), [0.2, 0.4, 0.6, 0.8]), "reset must never mutate imported source samples");
+  assert.ok(near(values({buffer: sourceBuffer}), [0.2, 0.4, 0.6, 0.8]), "reset must never mutate imported source samples");
   assert.equal(S.editorState.undo.length, 0);
   assert.ok(visualRedraws > 0);
 
