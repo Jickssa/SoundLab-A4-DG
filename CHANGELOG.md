@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.4 — audio inspection and audition controls
+- Add decoded-buffer duration, sample rate and channel count display.
+- Add sampled peak/RMS estimates, labelled as approximate.
+- Add waveform zoom and horizontal window navigation.
+- Add separate monitoring gain; source WAV export remains unchanged.
+- Add audio-inspector regression tests and portable v3.4 CI artifact.
+
 ## 3.3 — persistent local library
 - Add optional IndexedDB save, restore and delete controls.
 - Persist imported source blobs, typed-array payloads, metadata, tags, favourites, linked audio IDs and recorded capture blobs.
@@ -13,17 +20,11 @@
 - Stop treating arbitrary SysEx messages as audible preview items; real audio references can still be linked.
 - Require an explicit Analog Four / Digitone target and a safety acknowledgement before individual or batch SysEx queueing.
 - Limit SysEx message size and batch size; keep firmware / OS and project transfer unsupported.
-- Add bounded ZIP parsing and decompression: archive, entry, count, cumulative expansion and compression-ratio limits.
-- Add duplicate file detection within the current library and a MIDI input event monitor.
-- Fix capture export extension so it follows the browser's actual recording MIME type.
+- Add bounded ZIP parsing and decompression, duplicate import detection and MIDI input monitoring.
 - Add HTML/DOM static audit and ZIP/SysEx regression tests to GitHub Actions.
-- Generate and upload a portable ZIP bundle from every successful CI run.
+- Generate and upload a portable ZIP bundle from successful CI runs.
 
 ## 3.1 — initial public repository port
 - Publish standalone local-first HTML application and bilingual documentation.
-- Inventory AFSND / DNSND / SYX / audio / ZIP / project files.
-- Add proxy preview, audio-reference linking, capture and WAV export.
-- Add conservative SysEx framing checks and Web MIDI queueing.
-- Document the unimplemented native Elektron Transfer protocol and proxy/emulation boundary.
 
-Proxy audio remains approximate. No physical Analog Four or Digitone hardware transfer has been certified by this release.
+Proxy audio remains approximate. No physical Analog Four or Digitone transfer has been certified by these releases.
