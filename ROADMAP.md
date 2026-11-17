@@ -2,6 +2,13 @@
 
 This roadmap separates practical improvements from unverified reverse-engineering work. Completed items refer to development branches, not hardware certification.
 
+## Completed in v3.6
+- [x] Recognize the individual Sound SysEx subtype for Analog Four / Analog Keys and Digitone MK1.
+- [x] Validate model, Sound prefix, 8-in-7 payload, checksum and length before extracting slot/name/tags.
+- [x] Restrict SysEx queueing to valid Sound frames whose model matches the selected target.
+- [x] Add synthetic A4/Digitone parser fixtures and malformed-frame regression tests.
+- [x] Document format scope and non-goals; no proprietary synthesis parameters or Transfer protocol are claimed.
+
 ## Completed in v3.5
 - [x] Add A/B selection between direct machine capture / linked audio reference and native proxy synthesis.
 - [x] Prefer a direct capture attached to a native patch; fall back to the linked audio file.
