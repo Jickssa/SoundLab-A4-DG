@@ -7,6 +7,12 @@
 
 For accurate audition, load the sound into the physical instrument using its supported workflow, connect its audio output to an interface, and record a reference. SoundLab can link that recording to the library item.
 
+## Audio inspector in v3.4
+- Duration, sample rate and channel count describe the decoded AudioBuffer presented to the browser; resampling may have occurred during decoding.
+- Peak and RMS are sampled estimates (up to 250,000 frames per channel), not a full precision forensic measurement.
+- Waveform zoom and position only change the displayed window.
+- Monitoring gain changes playback level only. It does not modify the source blob, decoded buffer or exported WAV.
+
 ## Transfer boundaries
 - Elektron Transfer's native AFSND/DNSND USB-MIDI protocol is not implemented.
 - Native sound payloads are never sent as raw SysEx.
