@@ -512,7 +512,7 @@ function editorView(buffer){
 function editorPointerFrame(event){
  const st=S.editorState;if(!st)return 0;
  const rect=E.wave.getBoundingClientRect(),ratio=clamp((event.clientX-rect.left)/Math.max(1,rect.width),0,1),view=editorView(st.buffer);
- return Math.round(view.start+ratio*(view.end-view.start-1));
+ return Math.round(view.start+ratio*(view.end-view.start));
 }
 function editorPointerGain(event){
  const rect=E.wave.getBoundingClientRect(),ratio=clamp((event.clientY-rect.top)/Math.max(1,rect.height),0,1);
@@ -562,12 +562,12 @@ function endWavePointer(){
   applyEditorEnvelope(start,end,points);
  }
 }
-function playEditorSelection(){
+async function playEditorSelection(){
  const st=S.editorState;if(!st?.selection)return editorSetStatus('Aucune sélection à lire.',true);
  const i=current();if(!i)return;
  stopAudio();S.series.active=false;
  try{
-  const{start,end}=st.selection,buffer=st.buffer,ac=S.ctx,src=ac.createBufferSource(),gain=ac.createGain();
+  const{start,end}=st.selection,buffer=st.buffer,ac=await ctx(),src=ac.createBufferSource(),gain=ac.createGain();
   src.buffer=buffer;gain.gain.value=clamp(+E.previewGain.value/100,0,1.5);
   src.connect(gain);gain.connect(ac.destination);src.start(0,start/buffer.sampleRate,(end-start)/buffer.sampleRate);
   S.source=src;S.gainNode=gain;S.buffer=buffer;S.start=ac.currentTime;
