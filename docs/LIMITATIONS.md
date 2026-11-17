@@ -18,7 +18,7 @@ For accurate audition, load the sound into the physical instrument using its sup
 ## Visual audio editor in v3.7
 - Editing applies to a private in-memory AudioBuffer copy of the selected audio source; source files, capture blobs and native payloads are not overwritten.
 - Available sources are decoded audio files, A/reference recordings and B/proxy render buffers. For native AFSND/DNSND, only the generated proxy waveform is edited; native synthesis parameters are not decoded or changed.
-- One working buffer is limited to 128 MiB and retained undo/redo snapshots are capped at 128 MiB. Large files may need to be shortened or converted before editing.
+- One working buffer is limited to 128 MiB, undo/redo history is capped at 128 MiB, and all working buffers plus history across the session are capped at 256 MiB. Use **Libérer mémoire** to discard an unexported edit, or create an edited WAV copy (which releases the prior working buffer). Large files may need to be shortened or converted before editing.
 - PCM WAV export is 16-bit and clamps samples outside ±1. SoundLab warns when processing creates peaks above 0 dBFS; normalize before export to avoid hard clipping.
 - Session edit history is memory-only. Export the result or create a new WAV copy in the library, then save the library if persistence is required.
 - Envelope drawing is a sampled linear interpolation of user-drawn points, not an automation lane or parametric envelope in the instrument.
