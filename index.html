@@ -286,6 +286,290 @@ function showAudioFacts(b){
  const rms=count?Math.sqrt(sum/count):0;
  E.audioFacts.textContent='Durée '+b.duration.toFixed(2)+' s · '+(b.sampleRate/1000).toFixed(2)+' kHz · '+b.numberOfChannels+' canal/canaux · Crête ≈ '+dbfs(peak)+' · RMS ≈ '+dbfs(rms)+' (mesure échantillonnée)';
 }
+
+const MAX_EDITOR_BUFFER_BYTES=128*1024*1024;
+const MAX_EDITOR_HISTORY_BYTES=128*1024*1024;
+function audioBufferBytes(b){return b.length*b.numberOfChannels*4}
+function cloneAudioBuffer(source){
+ const ac=S.ctx||null;
+ if(!ac)throw Error('Audio context is not initialized');
+ const copy=ac.createBuffer(source.numberOfChannels,source.length,source.sampleRate);
+ for(let ch=0;ch<source.numberOfChannels;ch++)copy.copyToChannel(source.getChannelData(ch),ch);
+ return copy;
+}
+function activeEditRange(state){
+ if(state.selection&&state.selection.end>state.selection.start)return{start:state.selection.start,end:state.selection.end};
+ return{start:0,end:state.buffer.length};
+}
+function rangeBytes(state,start,end){return Math.max(0,end-start)*state.buffer.numberOfChannels*4}
+function historyEntryBytes(entry){return entry.bytes||0}
+function clearRedoHistory(state){
+ for(const entry of state.redo)state.historyBytes-=historyEntryBytes(entry);
+ state.redo.length=0;
+}
+function pushEditorHistory(state,entry){
+ clearRedoHistory(state);
+ const bytes=historyEntryBytes(entry);
+ if(bytes>MAX_EDITOR_HISTORY_BYTES)return false;
+ while(state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES&&state.undo.length){
+  const dropped=state.undo.shift();state.historyBytes-=historyEntryBytes(dropped);
+ }
+ if(state.historyBytes+bytes>MAX_EDITOR_HISTORY_BYTES)return false;
+ state.undo.push(entry);state.historyBytes+=bytes;
+ return true;
+}
+function snapshotEditorRange(state,start,end){
+ const channels=[];
+ for(let ch=0;ch<state.buffer.numberOfChannels;ch++)channels.push(state.buffer.getChannelData(ch).slice(start,end));
+ return{type:'range',start,end,channels,bytes:rangeBytes(state,start,end)};
+}
+function recordEditorRange(state,start,end){
+ if(end<=start)return false;
+ return pushEditorHistory(state,snapshotEditorRange(state,start,end));
+}
+function recordEditorReplacement(state){
+ return pushEditorHistory(state,{type:'replace',buffer:state.buffer,bytes:audioBufferBytes(state.buffer)});
+}
+function swapEditorHistory(state,from,to){
+ if(!from.length)return false;
+ const entry=from.pop();
+ if(entry.type==='range'){
+  const current=[];
+  for(let ch=0;ch<state.buffer.numberOfChannels;ch++){
+   const data=state.buffer.getChannelData(ch);
+   current.push(data.slice(entry.start,entry.end));
+   data.set(entry.channels[ch],entry.start);
+  }
+  to.push({type:'range',start:entry.start,end:entry.end,channels:current,bytes:entry.bytes});
+ }else{
+  const current=state.buffer;state.buffer=entry.buffer;
+  to.push({type:'replace',buffer:current,bytes:entry.bytes});
+  if(state.selection&&state.selection.end>state.buffer.length)state.selection=null;
+ }
+ return true;
+}
+function editorSetStatus(message,isError=false){
+ if(E.edStatus){E.edStatus.textContent=message;E.edStatus.className=isError?'notice':'info'}
+}
+function updateEditorUI(){
+ const st=S.editorState;
+ if(!st){E.edSelection.textContent='Aucun son chargé dans l’éditeur.';E.edUndo.disabled=true;E.edRedo.disabled=true;E.editDirty.textContent='—';return}
+ const rate=st.buffer.sampleRate,sel=st.selection;
+ E.edSelection.textContent=sel&&sel.end>sel.start
+  ?'Sélection : '+(sel.start/rate).toFixed(3)+' s → '+(sel.end/rate).toFixed(3)+' s · '+((sel.end-sel.start)/rate).toFixed(3)+' s'
+  :'Aucune sélection · toute la piste';
+ E.edUndo.disabled=!st.undo.length;E.edRedo.disabled=!st.redo.length;
+ E.editDirty.textContent=st.dirty?'Modifié':'Original';
+ E.editDirty.className='badge '+(st.dirty?'b-warn':'b-ok');
+ E.edSelect.classList.toggle('active',S.editorMode==='select');
+ E.edEnvelope.classList.toggle('active',S.editorMode==='envelope');
+ E.wave.parentElement.classList.toggle('editing',S.editorOpen);
+}
+function canOpenVisualEditor(i){
+ return !!i&&(i.kind==='audio'||i.kind==='native'||!!i.ref||S.captures.has(i.id));
+}
+async function ensureVisualEditor(){
+ const i=current();if(!i||!canOpenVisualEditor(i))throw Error('Cet élément ne fournit pas de signal audio éditable. Importer un fichier audio ou choisir un son natif avec une référence/capture.');
+ const baseBuffer=await getBaseAuditionBuffer(i),key=editorKey(i),token=editorSourceToken(i);
+ let state=S.edits.get(key);
+ if(state&&state.token===token){S.editorState=state;return state}
+ const bytes=audioBufferBytes(baseBuffer);
+ if(bytes>MAX_EDITOR_BUFFER_BYTES)throw Error('Piste trop volumineuse pour l’édition en mémoire (limite 128 Mio). Réduire ou convertir le fichier avant import.');
+ await ctx();
+ const copy=cloneAudioBuffer(baseBuffer);
+ state={key,token,buffer:copy,selection:null,undo:[],redo:[],historyBytes:0,dirty:false};
+ S.edits.set(key,state);S.editorState=state;
+ return state;
+}
+async function openVisualEditor(){
+ const i=current();if(!i)return;
+ if(S.editorOpen){S.editorOpen=false;E.visualEditor.classList.add('hidden');E.editOpen.textContent='Ouvrir l’éditeur visuel';E.wave.parentElement.classList.remove('editing');return}
+ try{
+  const state=await ensureVisualEditor();
+  S.editorOpen=true;E.visualEditor.classList.remove('hidden');E.editOpen.textContent='Fermer l’éditeur';
+  S.editorMode='select';S.envelopePreview=[];
+  wave(state.buffer);updateEditorUI();
+  editorSetStatus('Piste chargée en copie mémoire. Le fichier source et les captures restent intacts.');
+ }catch(e){editorSetStatus(e.message,true);log('Éditeur visuel : '+e.message,'warn')}
+}
+function redrawEditor(){
+ const st=S.editorState;if(!st)return;
+ wave(st.buffer);updateEditorUI();
+}
+function applyEditorRange(label,operation){
+ const st=S.editorState;if(!st)return;
+ const{start,end}=activeEditRange(st);
+ if(end-start<2){editorSetStatus('La zone à modifier est trop courte.',true);return}
+ if(!recordEditorRange(st,start,end)){editorSetStatus('Historique saturé : sélectionne une zone plus courte (limite 128 Mio).',true);return}
+ try{
+  operation(st.buffer,start,end);
+  st.dirty=true;redrawEditor();editorSetStatus(label+' appliqué à '+((end-start)/st.buffer.sampleRate).toFixed(3)+' s.');
+ }catch(e){swapEditorHistory(st,st.undo,st.redo);st.historyBytes-=0;editorSetStatus('Édition annulée : '+e.message,true);redrawEditor()}
+}
+function applyEditorGain(){
+ const gain=clamp(Number(E.edGain.value)/100,0,2);
+ applyEditorRange('Gain '+Math.round(gain*100)+' %',(b,start,end)=>{
+  for(let ch=0;ch<b.numberOfChannels;ch++){const d=b.getChannelData(ch);for(let i=start;i<end;i++)d[i]*=gain}
+ });
+}
+function applyEditorFade(direction){
+ applyEditorRange(direction==='in'?'Fondu entrée':'Fondu sortie',(b,start,end)=>{
+  const length=end-start;
+  for(let ch=0;ch<b.numberOfChannels;ch++){
+   const d=b.getChannelData(ch);
+   for(let i=0;i<length;i++){const g=length<=1?1:i/(length-1),gain=direction==='in'?g:1-g;d[start+i]*=gain}
+  }
+ });
+}
+function applyEditorNormalize(){
+ const st=S.editorState;if(!st)return;
+ const{start,end}=activeEditRange(st);let peak=0;
+ for(let ch=0;ch<st.buffer.numberOfChannels;ch++){const d=st.buffer.getChannelData(ch);for(let i=start;i<end;i++)peak=Math.max(peak,Math.abs(d[i]))}
+ if(!peak){editorSetStatus('Normalisation impossible : la sélection est silencieuse.',true);return}
+ const gain=Math.pow(10,-1/20)/peak;
+ applyEditorRange('Normalisation à −1 dBFS',(b,a,z)=>{
+  for(let ch=0;ch<b.numberOfChannels;ch++){const d=b.getChannelData(ch);for(let i=a;i<z;i++)d[i]*=gain}
+ });
+}
+function applyEditorReverse(){
+ applyEditorRange('Inversion temporelle',(b,start,end)=>{
+  for(let ch=0;ch<b.numberOfChannels;ch++){const d=b.getChannelData(ch);for(let a=start,z=end-1;a<z;a++,z--){const tmp=d[a];d[a]=d[z];d[z]=tmp}}
+ });
+}
+function applyEditorSilence(){
+ applyEditorRange('Silence',(b,start,end)=>{
+  for(let ch=0;ch<b.numberOfChannels;ch++)b.getChannelData(ch).fill(0,start,end);
+ });
+}
+function applyEditorTrim(){
+ const st=S.editorState;if(!st||!st.selection)return editorSetStatus('Sélectionne une zone avant de rogner.',true);
+ const{start,end}=activeEditRange(st);
+ if(end-start<2)return editorSetStatus('Sélection trop courte.',true);
+ if(!recordEditorReplacement(st))return editorSetStatus('Historique saturé : rognage non effectué.',true);
+ const old=st.buffer,trimmed=S.ctx.createBuffer(old.numberOfChannels,end-start,old.sampleRate);
+ for(let ch=0;ch<old.numberOfChannels;ch++)trimmed.copyToChannel(old.getChannelData(ch).slice(start,end),ch);
+ st.buffer=trimmed;st.selection=null;st.dirty=true;redrawEditor();
+ editorSetStatus('Piste rognée à la sélection. Annuler permet de récupérer la durée précédente.');
+}
+function applyEditorEnvelope(start,end,points){
+ const st=S.editorState;if(!st||end-start<2||points.length<2)return;
+ const sorted=points.slice().sort((a,b)=>a.frame-b.frame),compact=[];
+ for(const p of sorted){if(compact.length&&p.frame===compact[compact.length-1].frame)compact[compact.length-1]=p;else compact.push(p)}
+ if(compact.length<2)return;
+ const envelopeAt=frame=>{
+  if(frame<=compact[0].frame)return compact[0].gain;
+  if(frame>=compact[compact.length-1].frame)return compact[compact.length-1].gain;
+  let lo=0,hi=compact.length-1;
+  while(hi-lo>1){const mid=(lo+hi)>>1;if(compact[mid].frame<=frame)lo=mid;else hi=mid}
+  const a=compact[lo],b=compact[hi],t=(frame-a.frame)/Math.max(1,b.frame-a.frame);
+  return a.gain+(b.gain-a.gain)*t;
+ };
+ applyEditorRange('Enveloppe dessinée',(b,a,z)=>{
+  for(let ch=0;ch<b.numberOfChannels;ch++){const d=b.getChannelData(ch);for(let frame=a;frame<z;frame++)d[frame]*=envelopeAt(frame)}
+ });
+}
+function undoEditor(){
+ const st=S.editorState;if(!st||!swapEditorHistory(st,st.undo,st.redo))return;
+ st.dirty=true;redrawEditor();editorSetStatus('Modification annulée.');
+}
+function redoEditor(){
+ const st=S.editorState;if(!st||!swapEditorHistory(st,st.redo,st.undo))return;
+ st.dirty=true;redrawEditor();editorSetStatus('Modification rétablie.');
+}
+async function resetEditor(){
+ const i=current();if(!i)return;
+ try{
+  const base=await getBaseAuditionBuffer(i),key=editorKey(i),token=editorSourceToken(i),copy=cloneAudioBuffer(base);
+  const st={key,token,buffer:copy,selection:null,undo:[],redo:[],historyBytes:0,dirty:false};
+  S.edits.set(key,st);S.editorState=st;redrawEditor();editorSetStatus('Modifications réinitialisées ; source d’origine rechargée.');
+ }catch(e){editorSetStatus(e.message,true)}
+}
+function editorFilename(name){return String(name||'sound').replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80)||'sound'}
+function exportEditedWav(){
+ const st=S.editorState,i=current();if(!st||!i)return;
+ dl(wav(st.buffer),editorFilename(i.name)+'_edited.wav');
+ editorSetStatus('WAV édité exporté. Le fichier source n’a pas été remplacé.');
+}
+async function createEditedCopy(){
+ const st=S.editorState,i=current();if(!st||!i)return;
+ const blob=wav(st.buffer),name=editorFilename(i.name)+'_edited.wav';
+ const copy=item({name,path:'edited/'+name,ext:'wav',kind:'audio',size:blob.size,blob,buffer:st.buffer,status:'Edited copy · source preserved',previewable:true,category:i.category||'audio'});
+ S.items.push(copy);S.selected=copy.id;S.auditionMode='proxy';render();renderDetail(copy);
+ editorSetStatus('Copie ajoutée à la bibliothèque. L’original et le son natif restent inchangés.');
+ if(S.editorOpen){try{await ensureVisualEditor();wave(S.editorState.buffer);updateEditorUI()}catch(e){editorSetStatus(e.message,true)}}
+}
+function editorView(buffer){
+ const zoom=clamp(+E.waveZoom.value||1,1,32),offset=clamp(+E.waveOffset.value||0,0,100)/100;
+ const visible=Math.max(1,Math.floor(buffer.length/zoom)),start=Math.floor((buffer.length-visible)*offset);
+ return{start,end:Math.min(buffer.length,start+visible)};
+}
+function editorPointerFrame(event){
+ const st=S.editorState;if(!st)return 0;
+ const rect=E.wave.getBoundingClientRect(),ratio=clamp((event.clientX-rect.left)/Math.max(1,rect.width),0,1),view=editorView(st.buffer);
+ return Math.round(view.start+ratio*(view.end-view.start-1));
+}
+function editorPointerGain(event){
+ const rect=E.wave.getBoundingClientRect(),ratio=clamp((event.clientY-rect.top)/Math.max(1,rect.height),0,1);
+ return clamp(2*(1-ratio),0,2);
+}
+function beginWavePointer(event){
+ if(!S.editorOpen||!S.editorState||event.button!==0)return;
+ event.preventDefault();E.wave.setPointerCapture?.(event.pointerId);
+ const frame=editorPointerFrame(event);
+ if(S.editorMode==='select'){
+  S.editorPointer={mode:'select',start:frame,end:frame};
+  S.editorState.selection=null;
+ }else{
+  const view=editorView(S.editorState.buffer);
+  const selected=S.editorState.selection;
+  const start=selected?.start??view.start,end=selected?.end??view.end;
+  S.editorPointer={mode:'envelope',start,end,points:[{frame,gain:editorPointerGain(event)}]};
+  S.envelopePreview=S.editorPointer.points.slice();
+ }
+ redrawEditor();
+}
+function moveWavePointer(event){
+ const pointer=S.editorPointer;if(!pointer)return;
+ const frame=editorPointerFrame(event);
+ if(pointer.mode==='select')pointer.end=frame;
+ else{
+  const last=pointer.points[pointer.points.length-1];
+  if(Math.abs(frame-last.frame)>=Math.max(1,Math.floor(S.editorState.buffer.sampleRate/1000))||pointer.points.length<2){
+   pointer.points.push({frame,gain:editorPointerGain(event)});
+  }else last.gain=editorPointerGain(event);
+  S.envelopePreview=pointer.points.slice();
+ }
+ redrawEditor();
+}
+function endWavePointer(){
+ const pointer=S.editorPointer;if(!pointer)return;
+ S.editorPointer=null;
+ if(pointer.mode==='select'){
+  const start=Math.max(0,Math.min(pointer.start,pointer.end)),end=Math.min(S.editorState.buffer.length,Math.max(pointer.start,pointer.end));
+  S.editorState.selection=end-start>=Math.max(2,Math.round(S.editorState.buffer.sampleRate*.005))?{start,end}:null;
+  S.envelopePreview=[];
+  updateEditorUI();redrawEditor();
+ }else{
+  const view=editorView(S.editorState.buffer),start=S.editorState.selection?.start??view.start,end=S.editorState.selection?.end??view.end;
+  const points=pointer.points.map(p=>({frame:clamp(p.frame,start,end-1),gain:p.gain}));
+  S.envelopePreview=[];
+  applyEditorEnvelope(start,end,points);
+ }
+}
+function playEditorSelection(){
+ const st=S.editorState;if(!st?.selection)return editorSetStatus('Aucune sélection à lire.',true);
+ const i=current();if(!i)return;
+ stopAudio();S.series.active=false;
+ try{
+  const{start,end}=st.selection,buffer=st.buffer,ac=S.ctx,src=ac.createBufferSource(),gain=ac.createGain();
+  src.buffer=buffer;gain.gain.value=clamp(+E.previewGain.value/100,0,1.5);
+  src.connect(gain);gain.connect(ac.destination);src.start(0,start/buffer.sampleRate,(end-start)/buffer.sampleRate);
+  S.source=src;S.gainNode=gain;S.buffer=buffer;S.start=ac.currentTime;
+  src.onended=()=>{if(S.source===src){S.source=null;if(S.gainNode===gain){try{gain.disconnect()}catch{}S.gainNode=null}E.playProgress.style.width='0%'}};
+  editorSetStatus('Lecture de la sélection.');
+ }catch(e){editorSetStatus('Lecture impossible : '+e.message,true)}
+}
+
 function wave(b){
  const c=E.wave,d=devicePixelRatio||1,w=Math.max(320,c.clientWidth*d),h=Math.max(80,c.clientHeight*d);
  c.width=w;c.height=h;const x=c.getContext('2d'),zoom=clamp(+E.waveZoom.value||1,1,32),offset=clamp(+E.waveOffset.value||0,0,100)/100;
@@ -308,7 +592,7 @@ function stopAudio(){
  if(S.raf)cancelAnimationFrame(S.raf);S.raf=null;E.playProgress.style.width='0%';
 }
 function stop(){stopAudio();S.series.active=false}
-async function getAuditionBuffer(i){
+async function getBaseAuditionBuffer(i){
  if(i.kind==='audio')return await decode(i);
  if(S.auditionMode==='reference'){
   const capture=S.captures.get(i.id);
@@ -331,6 +615,25 @@ async function getAuditionBuffer(i){
  if(i.ref)throw Error('This item has a real audio reference but no native proxy. Select A / real audio.');
  throw Error('No audio preview exists for this data format. Link a verified audio recording to audition it.');
 }
+function editorKey(i){return i.kind==='audio'?i.id+'|audio':i.id+'|'+S.auditionMode}
+function editorSourceToken(i){
+ if(i.kind==='audio')return 'audio:'+i.id;
+ if(S.auditionMode==='reference'){
+  const cap=S.captures.get(i.id);
+  if(cap?.blob)return 'capture:'+i.id+':'+(cap.token||cap.blob.size+':'+cap.blob.type);
+  if(i.ref)return 'reference:'+i.id+':'+i.ref;
+ }
+ if(i.kind==='native')return 'proxy:'+i.id+':'+(i.key||'unkeyed');
+ return 'reference:'+i.id+':'+(i.ref||'none');
+}
+async function getAuditionBuffer(i){
+ const baseBuffer=await getBaseAuditionBuffer(i);
+ const key=editorKey(i),token=editorSourceToken(i),state=S.edits.get(key);
+ if(state&&state.token===token)return state.buffer;
+ if(state){S.edits.delete(key);if(S.editorState===state)S.editorState=null}
+ return baseBuffer;
+}
+
 async function play(fromSeries=false){
  const i=current();if(!i)return;
  if(!fromSeries)S.series.active=false;
