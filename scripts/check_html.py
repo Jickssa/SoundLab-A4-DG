@@ -55,7 +55,7 @@ binding_match = re.search(
 )
 if not binding_match:
     fail("Could not locate the dynamic DOM binding list")
-binding_list = re.findall(r"['"]([A-Za-z0-9_-]+)['"]", binding_match.group(1))
+binding_list = re.findall(r"""['"]([A-Za-z0-9_-]+)['"]""", binding_match.group(1))
 binding_counts = Counter(binding_list)
 duplicate_bindings = sorted(key for key, count in binding_counts.items() if count > 1)
 if duplicate_bindings:
