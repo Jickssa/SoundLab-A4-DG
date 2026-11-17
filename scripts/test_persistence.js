@@ -96,7 +96,7 @@ const S = {
       kind: "audio", size: 8, blob: new Blob(["audio"]), device: "audio", previewable: true,
       transferable: false, warning: [], category: "keys", favorite: false },
   ],
-  captures: new Map([["patch-1", { blob: new Blob(["capture"], { type: "audio/webm" }), url: "blob:old" }]),
+  captures: new Map([["patch-1", { blob: new Blob(["capture"], { type: "audio/webm" }), url: "blob:old" }]]),
   dbPromise: null, selected: "patch-1", series: { ids: [], index: 0, active: false },
 };
 const classList = { add() {}, remove() {} };
