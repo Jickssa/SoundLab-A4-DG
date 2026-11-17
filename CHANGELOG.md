@@ -9,7 +9,8 @@
 - Add bounded ZIP parsing and decompression: archive, entry, count, cumulative expansion and compression-ratio limits.
 - Add duplicate file detection within the current library and a MIDI input event monitor.
 - Fix capture export extension so it follows the browser's actual recording MIME type.
-- Add HTML/DOM static audit to GitHub Actions.
+- Add HTML/DOM static audit and ZIP/SysEx regression tests to GitHub Actions.
+- Generate and upload a portable ZIP bundle from every successful CI run.
 
 ## 3.1 — initial public repository port
 - Publish standalone local-first HTML application and bilingual documentation.
