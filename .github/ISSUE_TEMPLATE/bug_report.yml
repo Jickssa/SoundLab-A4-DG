@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a reproducible problem / Signaler un problème reproductible
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload copyrighted banks, firmware, private dumps or personal data.
+        Ne joignez pas de banques protégées, firmware, dumps privés ou données personnelles.
+  - type: input
+    id: version
+    attributes:
+      label: SoundLab version / commit
+      placeholder: 3.1 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and browser / Système et navigateur
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Instrument and MIDI/audio interface / Machine et interface
+  - type: input
+    id: file
+    attributes:
+      label: File type and size / Format et taille
+      placeholder: .afsnd, 4 KB (do not attach private files)
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Étapes
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual / Attendu vs constaté
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs / Journaux expurgés
