@@ -1,6 +1,11 @@
 # Roadmap
 
-This roadmap separates practical improvements from unverified reverse-engineering work. Completed items below refer to the v3.2 public branch, not to hardware certification.
+This roadmap separates practical improvements from unverified reverse-engineering work. Completed items below refer to public development branches, not hardware certification.
+
+## Completed in v3.3
+- [x] Optional manual IndexedDB save/restore/delete for library files, metadata, favourites, audio links and capture blobs.
+- [x] Keep decoded AudioBuffers and object URLs out of the persistent records; rebuild them after restore.
+- [x] Report local storage entry counts and browser quota estimates when available.
 
 ## Completed in v3.2
 - [x] Fix sequential audition and linked real-audio navigation.
@@ -9,10 +14,11 @@ This roadmap separates practical improvements from unverified reverse-engineerin
 - [x] Add an explicit target and safety acknowledgement before SysEx send.
 - [x] Bound ZIP imports and decompression; check CRC, size, entry count and nesting.
 - [x] Add duplicate file detection and MIDI input monitoring.
-- [x] Add static HTML / DOM checks to GitHub Actions.
+- [x] Add static HTML / DOM checks and ZIP/SysEx regression tests to GitHub Actions.
+- [x] Generate and upload a portable ZIP bundle from successful CI runs.
 
 ## Next practical work
-- [ ] IndexedDB library persistence with explicit backup/export and privacy controls.
+- [ ] JSON metadata export/import with schema versioning and optional file manifest.
 - [ ] Audio metadata panel (duration, sample rate, channels, peak/RMS) after decode.
 - [ ] Waveform zoom, audition gain, keyboard shortcuts and accessible controls.
 - [ ] Per-device MIDI routing profiles and incoming MIDI learn.
