@@ -41,7 +41,9 @@ GitHub Actions runs the same checks and uploads the portable ZIP artifact.
 - [ ] Play the edited track and selection; export the edited WAV and create an edited library copy.
 - [ ] Verify the original imported file remains available unchanged; save and restore the newly created edited copy through IndexedDB.
 - [ ] Verify A/reference edits and B/proxy edits stay separate when switching A/B.
-- [ ] Confirm files above the 128 MiB editor cap are refused cleanly without partial edits.
+- [ ] Confirm files above the 128 MiB per-track editor cap are refused cleanly without partial edits.
+- [ ] Fill the 256 MiB session edit-memory budget with synthetic fixtures; verify a further editor copy is refused without corrupting existing edits.
+- [ ] Create an edited copy and verify the prior working buffer is released; use Libérer mémoire on a dirty edit and confirm the discard prompt.
 - [ ] Verify a raw SysEx item is never proxy-auditionable; with a linked audio recording, only A should be available.
 - [ ] Select at least three playable items and test sequential audition.
 - [ ] Test ZIP CRC/size/expansion limits and duplicate import detection.
