@@ -20,6 +20,7 @@ INCLUDED = [
     "docs/INSTALLATION.md",
     "docs/LIMITATIONS.md",
     "docs/TECHNICAL_NOTES.md",
+    "docs/SYSEX_SOUND_FORMAT.md",
     "docs/TESTING.md",
     "docs/GUIDE_FR.txt",
     "docs/FEEDBACK_FR.md",
