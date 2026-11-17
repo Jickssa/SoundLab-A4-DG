@@ -5,7 +5,15 @@
 2. **Native sounds (.afsnd/.dnsnd)**: container/payload inspection plus deterministic proxy synthesis. Proprietary synth parameters are not reconstructed.
 3. **SysEx**: transport/data, not inherently audio. Raw SysEx messages are not assigned synthetic audio previews. A verified audio recording can be linked manually to an item.
 
-For accurate audition, load the sound into the physical instrument using its supported workflow, connect its audio output to an interface, and record a reference. SoundLab can link that recording to the library item.
+For accurate audition, load the sound into the physical instrument using its supported workflow, connect its audio output to an interface, and record a reference. SoundLab can link that recording to the library item or retain a direct input capture on the selected patch.
+
+## A/B audition in v3.5
+- **A / Real reference** uses a direct capture associated with the selected native item when available; otherwise it uses the linked imported audio file.
+- **B / Proxy** uses the generic deterministic proxy renderer for native AFSND/DNSND items only.
+- Exported WAV follows the selected A/B source. A is a user-provided recording, not a decode of the patch.
+- Ordinary audio files always play as their original audio.
+- Raw SysEx has no proxy audio mode. If a SysEx item has an associated recording, only the real recording is audible.
+- Direct capture and imported audio references remain local; persistence is opt-in via IndexedDB.
 
 ## Audio inspector in v3.4
 - Duration, sample rate and channel count describe the decoded AudioBuffer presented to the browser; resampling may have occurred during decoding.
@@ -34,7 +42,7 @@ For accurate audition, load the sound into the physical instrument using its sup
 - Browser storage can be cleared, evicted or made unavailable by browser settings; quotas vary.
 - A local IndexedDB copy is not a guaranteed archive and does not replace the original source files or independent backups.
 - Use the same origin and browser profile to restore (for example, do not switch between `file://` and `http://localhost:8765`).
-- The application does not persist decoded AudioBuffer caches or temporary object URLs; they are rebuilt when needed. Captured audio blobs are persisted as source blobs.
+- Captured audio blobs are persisted as source blobs; decoded AudioBuffer caches and object URLs are rebuilt.
 
 ## Before sending SysEx
 1. Back up the receiving instrument and relevant banks.
