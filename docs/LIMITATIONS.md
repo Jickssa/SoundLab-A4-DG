@@ -15,6 +15,14 @@ For accurate audition, load the sound into the physical instrument using its sup
 - Raw SysEx has no proxy audio mode. If a SysEx item has an associated recording, only the real recording is audible.
 - Direct capture and imported audio references remain local; persistence is opt-in via IndexedDB.
 
+## Visual audio editor in v3.7
+- Editing applies to a private in-memory AudioBuffer copy of the selected audio source; source files, capture blobs and native payloads are not overwritten.
+- Available sources are decoded audio files, A/reference recordings and B/proxy render buffers. For native AFSND/DNSND, only the generated proxy waveform is edited; native synthesis parameters are not decoded or changed.
+- One working buffer is limited to 128 MiB and retained undo/redo snapshots are capped at 128 MiB. Large files may need to be shortened or converted before editing.
+- PCM WAV export is 16-bit and clamps samples outside ±1. SoundLab warns when processing creates peaks above 0 dBFS; normalize before export to avoid hard clipping.
+- Session edit history is memory-only. Export the result or create a new WAV copy in the library, then save the library if persistence is required.
+- Envelope drawing is a sampled linear interpolation of user-drawn points, not an automation lane or parametric envelope in the instrument.
+
 ## Audio inspector in v3.4
 - Duration, sample rate and channel count describe the decoded AudioBuffer presented to the browser; resampling may have occurred during decoding.
 - Peak and RMS are sampled estimates (up to 250,000 frames per channel), not a full precision forensic measurement.
