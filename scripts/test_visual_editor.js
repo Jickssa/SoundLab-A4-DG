@@ -38,6 +38,7 @@ const E = {
   edStatus: { textContent: "", className: "" },
   edGain: { value: "50" },
   edUndo: { disabled: false }, edRedo: { disabled: false },
+  edDiscard: { disabled: false },
   editDirty: { textContent: "", className: "" },
   edSelection: { textContent: "" },
   edSelect: { classList: { toggle() {} } },
