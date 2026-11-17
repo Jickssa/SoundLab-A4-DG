@@ -159,6 +159,8 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   assert.equal(api.audioBufferBytes(sourceBuffer), 4 * 2 * 4);
   assert.ok(api.MAX_EDITOR_HISTORY_BYTES <= 128 * 1024 * 1024);
   assert.ok(api.MAX_EDITOR_BUFFER_BYTES <= 128 * 1024 * 1024);
+  assert.match(html, /id="edDiscard"/);
+  assert.match(html, /function discardVisualEdit\(\)/);
   assert.equal(api.MAX_EDITOR_SESSION_BYTES, 256 * 1024 * 1024);
   S.edits.clear();
   S.edits.set("memory-fixture", {
