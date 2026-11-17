@@ -66,7 +66,7 @@ function log() {}
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
 const source = html.slice(start, end) +
-  "\nglobalThis.__visualEditorTest = { ensureVisualEditor, applyEditorGain, applyEditorFade, applyEditorNormalize, applyEditorReverse, applyEditorSilence, applyEditorTrim, applyEditorEnvelope, undoEditor, redoEditor, resetEditor, audioBufferBytes, MAX_EDITOR_BUFFER_BYTES, MAX_EDITOR_HISTORY_BYTES, MAX_EDITOR_SESSION_BYTES, sessionEditorBytes };";
+  "\nglobalThis.__visualEditorTest = { ensureVisualEditor, applyEditorGain, applyEditorFade, applyEditorNormalize, applyEditorReverse, applyEditorSilence, applyEditorTrim, applyEditorEnvelope, undoEditor, redoEditor, resetEditor, audioBufferBytes, MAX_EDITOR_BUFFER_BYTES, MAX_EDITOR_HISTORY_BYTES, MAX_EDITOR_SESSION_BYTES, sessionEditorBytes, pushEditorHistory };";
 const context = {
   S, E, current, editorKey, editorSourceToken, getBaseAuditionBuffer, ctx,
   wave, updateEditorUI, redrawEditor, render, renderDetail, dl, wav,
@@ -171,6 +171,23 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   assert.equal(api.sessionEditorBytes(), api.MAX_EDITOR_SESSION_BYTES);
   S.editorState = null;
   await assert.rejects(api.ensureVisualEditor(), /Budget mémoire de session atteint/);
+  S.edits.clear();
+  const MiB = 1024 * 1024;
+  const stateA = makeState([[0, 0]]);
+  stateA.historyBytes = 127 * MiB;
+  stateA.undo = [{ bytes: 127 * MiB }];
+  const stateB = makeState([[0, 0]]);
+  stateB.historyBytes = 128 * MiB;
+  stateB.undo = [{ bytes: 128 * MiB }];
+  S.edits.set("budget-a", stateA);
+  S.edits.set("budget-b", stateB);
+  const accepted = api.pushEditorHistory(stateA, {
+    type: "range", start: 0, end: 1, channels: [Float32Array.from([0])], bytes: MiB
+  });
+  assert.equal(accepted, true, "history should evict an older snapshot to stay inside the total budget");
+  assert.equal(stateA.historyBytes, MiB);
+  assert.ok(api.sessionEditorBytes() <= api.MAX_EDITOR_SESSION_BYTES,
+    "working buffers plus histories must remain within the 256 MiB session cap");
   S.edits.clear();
 
   console.log("PASS: isolated source buffer, multichannel range gain, undo/redo, fades, normalize, reverse, silence, trim, envelope scope and reset.");
