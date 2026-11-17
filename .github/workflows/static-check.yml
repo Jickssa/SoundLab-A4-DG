@@ -12,6 +12,8 @@ jobs:
           node-version: '22'
       - name: Validate document structure and control references
         run: python3 scripts/check_html.py
+      - name: Run parser and safety regression tests
+        run: node scripts/test_parsers.js
       - name: Extract inline JavaScript and check syntax
         run: |
           python3 - <<'PY'
