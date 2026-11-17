@@ -1,7 +1,7 @@
 # Technical notes
 
 ## Architecture
-Single-file HTML/CSS/JavaScript app; no build step or external runtime dependency. Web Audio API handles decoding/playback, deterministic proxy generation, WAV encoding and audio-input capture. Web MIDI API is requested with SysEx permission where supported.
+Single-file HTML/CSS/JavaScript app; no build step or external runtime dependency. Web Audio API handles decoding/playback, deterministic proxy generation, WAV encoding and audio-input capture. Web MIDI API is requested with SysEx permission where supported. IndexedDB stores a user-initiated persistent copy of the library.
 
 ## File handling
 - **AFSND**: ZIP-like container inspected for manifest, payload and accessible metadata. Manifest schemas may vary; fields are not treated as synthesis parameter values.
@@ -10,6 +10,9 @@ Single-file HTML/CSS/JavaScript app; no build step or external runtime dependenc
 - **ZIP**: non-encrypted stored/deflate entries are supported; CRC and expanded size are checked. ZIP64 is unsupported. Limits: 128 MiB archive, 2,048 entries, 64 MiB per expanded entry, 256 MiB cumulative expanded content per import batch.
 - **Audio**: browser codec support determines whether decodeAudioData succeeds. Recording export uses the actual MediaRecorder MIME type when known.
 
+## IndexedDB persistence
+The database `ElektronSoundLabLibrary` version 1 contains an `entries` object store. Save writes item metadata and source `Blob`/typed-array payloads plus captured audio blobs in one read-write transaction. Restore reconstructs the in-memory library, recreates object URLs for captures, and lets the browser rebuild decoded AudioBuffers and proxy previews on demand. Delete removes the persistent store contents but does not clear the current session. Persistence is manual and bound to the current browser profile/origin. Browser quota, eviction and site-data clearing remain outside the application's control.
+
 ## Proxy audio
 A deterministic seed derived from input bytes/file identity and controls drives generic analog/FM/percussion/texture proxy audio. Attack, release, width and a simple feedback-delay reverb stage affect the render. It is for rough triage and comparison, not sound recreation. No proprietary algorithms, wavetables, parameter mappings or firmware code are included.
 
@@ -17,4 +20,4 @@ A deterministic seed derived from input bytes/file identity and controls drives 
 Web MIDI requires browser/device support and explicit permission. The input monitor logs event summaries and suppresses rapid message flooding. Successful output.send() means the browser accepted the request; it is not a target-device acknowledgement. SysEx sending requires explicit target selection and a user safety acknowledgement. Batch size and individual message size are capped. Firmware/OS detection remains heuristic and must not be relied upon to identify safe data.
 
 ## Validation scope
-GitHub Actions checks HTML ID uniqueness, JavaScript selector references, mandatory controls, SysEx acknowledgement markup and JavaScript syntax. These static checks do not replace browser tests, codec tests, driver tests or tests with physical Digitone and Analog Four hardware.
+GitHub Actions checks HTML ID uniqueness, JavaScript selector references, mandatory controls, SysEx acknowledgement markup, IndexedDB control presence, parser regression tests and JavaScript syntax. It also builds and validates the portable ZIP artifact. These checks do not replace physical Digitone and Analog Four tests.
