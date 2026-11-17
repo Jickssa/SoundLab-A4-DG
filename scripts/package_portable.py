@@ -6,7 +6,7 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "dist" / "Elektron-SoundLab-v3.5-portable.zip"
+OUTPUT = ROOT / "dist" / "Elektron-SoundLab-v3.6-portable.zip"
 INCLUDED = [
     "index.html",
     "README.md",
