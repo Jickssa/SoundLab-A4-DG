@@ -28,7 +28,7 @@ Open `index.html` in a recent Chromium browser. Audio and local file inspection 
 - Native .afsnd/.dnsnd payloads are not decoded into proprietary synthesis parameters. Proxy preview is an approximation, **not an instrument emulator**.
 - A-mode recordings are references recorded/imported by the user; they are not a decode of the proprietary patch.
 - Raw SysEx data is not synthesized. A SysEx item is audible only when a real audio reference/capture is attached.
-- The editor modifies decoded audio or a generated proxy render, not proprietary AFSND/DNSND synthesis parameters. In-memory editor buffers and undo history each have a 128 MiB bound; export or create an edited library copy to keep the result.
+- The editor modifies decoded audio or a generated proxy render, not proprietary AFSND/DNSND synthesis parameters. Memory bounds: 128 MiB per track, 128 MiB undo history, 256 MiB aggregate across the session. Use Release memory to discard an unexported edit, or export/create an edited WAV library copy.
 - Sound SysEx metadata inspection does not decode FM/analog synthesis parameters; all other SysEx subtypes remain inventory-only and cannot be sent.
 - Elektron Transfer's native USB-MIDI protocol is not implemented. Native sounds are not sent as raw SysEx.
 - Web MIDI queueing does not prove that the instrument received, accepted or stored a dump.
