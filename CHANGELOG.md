@@ -5,7 +5,7 @@
 - Add gain, linear fades, −1 dBFS peak normalization, reverse, silence and trim-to-selection.
 - Add bounded undo/redo, selection playback, edited WAV export and create-copy-to-library workflow.
 - Keep original imported blobs, captures and native payloads unchanged; keep A/reference and B/proxy edits separate.
-- Add 128 MiB working-buffer and undo-history bounds with explicit clipping warnings.
+- Add 128 MiB per-track, 128 MiB history and 256 MiB aggregate session memory bounds; add an explicit release control and clipping warnings.
 - Add regression tests for multichannel editing, source isolation, edit scope, undo/redo and trim restoration.
 
 ## 3.6 — Sound SysEx inspection
