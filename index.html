@@ -502,7 +502,7 @@ function discardVisualEdit(){
  if(!state){editorSetStatus('Aucune copie d’édition à libérer.');return}
  if(state.dirty&&!confirm('Abandonner les modifications non exportées de cette piste ? Le fichier source restera intact.'))return;
  S.edits.delete(key);if(S.editorState===state)S.editorState=null;
- S.editorOpen=false;S.editorNeedsRefresh=false;S.visualEditor?.classList?.add('hidden');
+ S.editorOpen=false;S.editorNeedsRefresh=false;
  E.visualEditor.classList.add('hidden');E.wave.parentElement.classList.remove('editing');E.editOpen.textContent='Ouvrir l’éditeur visuel';
  getBaseAuditionBuffer(i).then(wave).catch(e=>editorSetStatus(e.message,true));
  editorSetStatus('Copie de travail et historique libérés. La source est intacte.');
