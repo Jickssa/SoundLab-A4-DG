@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a workflow or capability / Proposer une amélioration
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve / Problème à résoudre
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed workflow / Fonctionnement proposé
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target / Cible
+      options:
+        - Analog Four MKI / Analog Keys
+        - Digitone MK1 / Digitone Keys
+        - Both / Les deux
+        - Generic audio workflow / Audio
+        - Other / Unsure
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and safe test plan / Sources et test sans risque
+      description: Separate verified facts from assumptions.
