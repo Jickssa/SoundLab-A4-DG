@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.7 — visual audio editor
+- Add a waveform editor with mouse/touch time-range selection and viewport-aware envelope drawing.
+- Add gain, linear fades, −1 dBFS peak normalization, reverse, silence and trim-to-selection.
+- Add bounded undo/redo, selection playback, edited WAV export and create-copy-to-library workflow.
+- Keep original imported blobs, captures and native payloads unchanged; keep A/reference and B/proxy edits separate.
+- Add 128 MiB working-buffer and undo-history bounds with explicit clipping warnings.
+- Add regression tests for multichannel editing, source isolation, edit scope, undo/redo and trim restoration.
+
 ## 3.6 — Sound SysEx inspection
 - Identify the supported individual Elektron Sound SysEx frame subtype for Analog Four / Analog Keys and Digitone MK1.
 - Validate manufacturer/model IDs, Sound prefix, 8-in-7 payload, checksum and length before exposing Sound metadata.
