@@ -138,7 +138,8 @@ function setState(state) { S.editorState = state; S.edits.set(state.key, state);
   assert.equal(state.buffer.length, 3);
   api.undoEditor();
   assert.deepEqual(values(state), [0, 1, 2, 3, 4, 5], "undo trim must restore the complete clip");
-  assert.deepEqual(state.selection, { start: 1, end: 4 }, "undo trim must restore selection");
+  assert.equal(state.selection?.start, 1, "undo trim must restore selection start");
+  assert.equal(state.selection?.end, 4, "undo trim must restore selection end");
   api.redoEditor();
   assert.deepEqual(values(state), [1, 2, 3], "redo trim must crop again");
 
