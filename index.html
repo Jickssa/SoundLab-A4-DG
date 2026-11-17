@@ -711,8 +711,8 @@ function stats(){E.nItems.textContent=S.items.length;E.nSelected.textContent=S.i
  E.editAvailability.textContent=canOpenVisualEditor(i)?'Édition non destructive · original préservé':'Aucun signal audio à éditer pour cet élément';
  let edit=S.edits.get(editorKey(i));
  if(edit&&edit.token!==editorSourceToken(i)){S.edits.delete(editorKey(i));if(S.editorState===edit)S.editorState=null;edit=null}
- if(edit){S.editorState=edit;E.edDiscard.disabled=false;wave(edit.buffer)}else E.edDiscard.disabled=true;
- else if(i.preview){wave(i.preview)}else if(i.buffer){wave(i.buffer)}else{clearWave()}
+ if(edit){S.editorState=edit;E.edDiscard.disabled=false;wave(edit.buffer)}
+ else{S.editorState=null;E.edDiscard.disabled=true;if(i.preview){wave(i.preview)}else if(i.buffer){wave(i.buffer)}else{clearWave()}}
  if(S.editorOpen&&!canOpenVisualEditor(i)){S.editorOpen=false;E.visualEditor.classList.add('hidden');E.editOpen.textContent='Ouvrir l’éditeur visuel'}
 }
 async function series(){
