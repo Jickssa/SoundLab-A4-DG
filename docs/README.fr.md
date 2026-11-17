@@ -4,7 +4,7 @@ Bibliothèque locale de sons, station de préécoute et utilitaire SysEx prudent
 
 [English](README.en.md) · [Installation](INSTALLATION.md) · [Limites](LIMITATIONS.md) · [Tests](TESTING.md) · [Roadmap](../ROADMAP.md) · [Contribuer](../CONTRIBUTING.md) · [Sécurité](../SECURITY.md)
 
-> **Version 3.2 — expérimentale, tests communautaires nécessaires.** Projet indépendant, sans affiliation avec Elektron. SoundLab ne remplace pas Elektron Transfer.
+> **Version 3.3 — expérimentale, tests communautaires nécessaires.** Projet indépendant, sans affiliation avec Elektron. SoundLab ne remplace pas Elektron Transfer.
 
 ## Démarrage
 Ouvrir `index.html` dans Chrome ou Edge récents. La lecture audio et l'inspection fonctionnent localement. Pour Web MIDI/SysEx et la capture audio sous Windows, exécuter `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 requis), puis ouvrir `http://localhost:8765`.
@@ -18,6 +18,10 @@ Ouvrir `index.html` dans Chrome ou Edge récents. La lecture audio et l'inspecti
 - Association d'un enregistrement réel à un sound natif, capture audio externe et lecture séquentielle.
 - Filtres, favoris, inventaire JSON et monitoring MIDI IN.
 - Envoi SysEx sous garde : sélection explicite de l'appareil, case de reconnaissance des risques, confirmation et limites de taille.
+- Sauvegarde/restauration facultative en IndexedDB : sons importés, métadonnées, favoris, liaisons audio et captures restent dans le profil du navigateur.
+
+## Sauvegarde locale
+Les boutons **Sauvegarder localement**, **Restaurer** et **Effacer sauvegarde** agissent sur la base IndexedDB de l'origine et du profil navigateur courants. Rien n'est téléversé. Utiliser la même origine pour retrouver les données (par exemple toujours `http://localhost:8765`). Le nettoyage des données du site ou du profil peut supprimer cette sauvegarde : conserver les fichiers originaux et des copies indépendantes.
 
 ## Limites essentielles
 - Les paramètres propriétaires des .afsnd/.dnsnd ne sont pas décodés. La préécoute proxy est une approximation, **pas un émulateur**.
