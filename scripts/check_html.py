@@ -69,7 +69,7 @@ if missing:
 required = {
     "fileInput", "dirInput", "rows", "midiOut", "midiIn", "target",
     "sysexAck", "sendCurrent", "sendSelected", "play", "stop",
-    "wave", "analysis", "capture", "exportInventory", "saveLocal", "restoreLocal", "deleteLocal", "localStatus", "audioFacts", "waveZoom", "waveOffset", "previewGain", "vWaveZoom", "vWaveOffset", "vPreviewGain", "auditionA", "auditionB", "abStatus", "saveLocal", "restoreLocal", "deleteLocal", "localStatus",
+    "wave", "analysis", "capture", "exportInventory", "saveLocal", "restoreLocal", "deleteLocal", "localStatus", "audioFacts", "waveZoom", "waveOffset", "previewGain", "vWaveZoom", "vWaveOffset", "vPreviewGain", "auditionA", "auditionB", "abStatus",
 }
 missing_required = sorted(required - set(audit.ids))
 if missing_required:
