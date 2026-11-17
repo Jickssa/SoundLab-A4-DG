@@ -206,7 +206,7 @@ function connectMidiInput(){
  };
  log('MIDI input monitor attached: '+(input.name||input.id),'ok');
 }
-function firmware(i){return/(?:\bfirmware\b|\bupgrade\b|\bbootloader\b|\bupdater\b|\bOS(?:[\s._-]*\d+[A-Z]?)?\b)/i.test(i.name+' '+i.path)}async function send(i,confirmed=false){
+function firmware(i){return/(?:\bfirmware\b|\bupgrade\b|\bbootloader\b|\bupdater\b|(?:^|[^A-Z0-9])OS(?:[\s._-]*\d+(?:\.\d+)*[A-Z]?)?(?=$|[^A-Z0-9]))/i.test(i.name+' '+i.path)}async function send(i,confirmed=false){
  const o=out();
  if(!o||!i||i.kind!=='syxmsg'||!i.transferable||firmware(i))return false;
  if(!['a4','dn'].includes(E.target.value)){log('Choose an explicit target instrument before sending SysEx.','warn');return false}
