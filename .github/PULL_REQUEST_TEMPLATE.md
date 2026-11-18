@@ -1,18 +1,36 @@
 ## Summary / Résumé
 
-## User problem / Motivation
+## Motivation
+What user problem does this change solve?
 
 ## Changes
+- 
 
-## Validation / Vérifications
-- [ ] JavaScript syntax check (`node --check`)
-- [ ] Import test (list file types)
-- [ ] Audio playback/capture test if relevant
-- [ ] MIDI/SysEx tested (state whether a physical instrument was used)
-- [ ] French and English documentation updated
+## Validation
+- [ ] HTML / DOM audit
+- [ ] Parser and SysEx regression tests
+- [ ] IndexedDB persistence tests
+- [ ] Audio inspector tests
+- [ ] Visual editor tests
+- [ ] A/B audition tests
+- [ ] JavaScript syntax check
+- [ ] Portable package build
+- [ ] Manual browser tests (describe below)
+- [ ] Physical instrument tests (identify exact model and firmware)
+- [ ] Not tested on physical hardware
+
+## Commands and results
+List commands actually executed and their outcomes.
 
 ## Hardware / environment
+OS, browser, interface, instrument, firmware and routing when relevant.
 
-## Safety and limitations
+## Data integrity and safety
+Explain source preservation, destructive actions, memory limits and MIDI/SysEx implications.
+
+## Documentation
+- [ ] French documentation updated
+- [ ] English documentation updated
+- [ ] Limitations / security / changelog updated where relevant
 
 ## Screenshots or sanitized logs
