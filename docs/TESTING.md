@@ -1,9 +1,11 @@
-# SoundLab v3.7 — test plan
+# SoundLab v3.7 — plan de test
 
-This checklist is for reproducible community tests. Distinguish static checks, browser-only checks and physical-device checks. Do not use irreplaceable sound banks or an unbacked-up instrument.
+Ce document sépare les contrôles automatisés, les essais manuels dans un navigateur et les essais sur matériel physique. Un résultat dans une catégorie ne vaut pas validation dans les autres. Ne jamais utiliser une banque irremplaçable ou un instrument sans sauvegarde.
 
-## Automated checks
-Run:
+## Contrôles automatisés
+
+Depuis la racine du dépôt :
+
 ```sh
 python3 scripts/check_html.py
 node scripts/test_parsers.js
@@ -12,56 +14,72 @@ node scripts/test_persistence.js
 node scripts/test_audio_inspector.js
 node scripts/test_visual_editor.js
 node scripts/test_ab_audition.js
+python3 scripts/package_portable.py
+```
+
+Vérifier également la syntaxe du script intégré :
+
+```sh
 python3 - <<'PY'
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
-js = html.split("<script>", 1)[1].split("</script>", 1)[0]
-Path("/tmp/soundlab.js").write_text(js, encoding="utf-8")
+script = html.split("<script>", 1)[1].split("</script>", 1)[0]
+Path("/tmp/soundlab.js").write_text(script, encoding="utf-8")
 PY
 node --check /tmp/soundlab.js
-python3 scripts/package_portable.py
 ```
-GitHub Actions runs the same checks and uploads the portable ZIP artifact.
 
-## Browser test matrix
-- [ ] Import a WAV and verify playback, waveform and WAV export.
-- [ ] Verify audio facts show duration, sample rate, channel count and sampled peak/RMS.
-- [ ] Change waveform zoom and horizontal position; verify the visible window changes.
-- [ ] Change monitoring gain during playback; verify loudness changes while exported WAV remains source-level.
-- [ ] Import one AFSND and one DNSND; verify proxy-only preview.
-- [ ] Change attack, release, width and reverb separately; regenerate and confirm the proxy changes.
-- [ ] Link a real audio file to a native sound; press A then B; verify the first uses the linked recording and the second uses the native proxy.
-- [ ] Capture machine audio directly while a native sound is selected; verify the capture becomes available in A and B remains the proxy.
-- [ ] Export A and B separately; verify distinct filenames and that A contains the recording while B contains proxy audio.
-- [ ] Reload from the same browser origin, restore IndexedDB and verify the direct capture is still selectable in A.
-- [ ] Open the visual editor on an imported WAV; drag-select a short region and verify the selection time readout follows zoom/pan.
-- [ ] Apply gain to a selection and verify samples outside it do not change; undo and redo the operation.
-- [ ] Draw an envelope with no selection and verify it affects only the visible waveform range; repeat with a selection to constrain it.
-- [ ] Test fade in/out, normalization to −1 dBFS, reverse, silence and trim; verify undo restores the prior samples and trim length.
-- [ ] Play the edited track and selection; export the edited WAV and create an edited library copy.
-- [ ] Verify the original imported file remains available unchanged; save and restore the newly created edited copy through IndexedDB.
-- [ ] Verify A/reference edits and B/proxy edits stay separate when switching A/B.
-- [ ] Confirm files above the 128 MiB per-track editor cap are refused cleanly without partial edits.
-- [ ] Fill the 256 MiB session edit-memory budget with synthetic fixtures; verify a further editor copy is refused without corrupting existing edits.
-- [ ] Create an edited copy and verify the prior working buffer is released; use Libérer mémoire on a dirty edit and confirm the discard prompt.
-- [ ] Verify a raw SysEx item is never proxy-auditionable; with a linked audio recording, only A should be available.
-- [ ] Select at least three playable items and test sequential audition.
-- [ ] Test ZIP CRC/size/expansion limits and duplicate import detection.
-- [ ] Import a known A4 / Digitone Sound .syx bank; verify model, slot, name and tags are shown for the recognized individual Sound frames.
-- [ ] Verify messages with a wrong model ID, prefix, checksum, length or 7-bit payload remain non-transferable.
-- [ ] Select a different target model and verify a Sound frame cannot be queued to the mismatched device.
-- [ ] Verify OS/firmware .syx files are not recognized as individual Sound frames and are never offered for sending.
-- [ ] Verify explicit target selection and acknowledgement are required before sending a validated Sound SysEx frame.
+GitHub Actions exécute les contrôles configurés dans le workflow et publie une archive ZIP en artefact si la construction aboutit.
 
-## IndexedDB persistence checks
-- [ ] Save a library with one native sound, one audio file, a favourite, an audio link and a direct capture.
-- [ ] Reload on the same browser profile and exact same origin; restore.
-- [ ] Verify source binaries, metadata, favourites, links and capture are restored, and A mode selects the direct capture.
-- [ ] Delete the persistent backup; verify the open session remains.
-- [ ] Repeat with storage disabled/quota exhausted; verify a useful error appears.
+## Essais manuels dans le navigateur
 
-## Hardware validation — optional, not implied by CI
-Only use a backed-up instrument and a known-safe, model-specific test message. Verify the receive mode and exact destination. Test one message first. Browser queueing alone is not a pass.
+### Import et lecture
 
-## Report format
-Include SoundLab commit, instrument/model and OS version, computer OS, browser version, MIDI/audio interface, file extension and size, steps, expected result, observed result and sanitized logs. Never attach commercial sound packs, firmware, private dumps, serial numbers or personal data.
+- [ ] Importer un WAV et vérifier lecture, forme d'onde et export.
+- [ ] Vérifier durée, fréquence d'échantillonnage, nombre de canaux et estimations crête/RMS.
+- [ ] Modifier zoom et position horizontale ; vérifier la fenêtre affichée.
+- [ ] Modifier le volume de monitoring ; vérifier que l'export source n'est pas modifié.
+- [ ] Importer un AFSND et un DNSND ; vérifier le rendu proxy uniquement.
+- [ ] Associer un fichier audio réel ; vérifier A puis B.
+- [ ] Capturer directement la sortie audio de la machine ; vérifier la disponibilité en A et le proxy en B.
+- [ ] Exporter A et B séparément et contrôler les contenus.
+
+### Éditeur visuel
+
+- [ ] Ouvrir l'éditeur sur un fichier audio et faire une sélection à la souris.
+- [ ] Vérifier que la sélection suit le zoom et le déplacement horizontal.
+- [ ] Appliquer un gain sur la sélection et vérifier que les échantillons extérieurs restent inchangés.
+- [ ] Dessiner une enveloppe sans sélection et vérifier qu'elle reste dans la zone visible.
+- [ ] Recommencer avec une sélection et vérifier que l'enveloppe reste dans cette sélection.
+- [ ] Tester fondu entrant, fondu sortant, normalisation −1 dBFS, inversion, silence et rognage.
+- [ ] Vérifier annulation/rétablissement et restauration de la durée après annulation du rognage.
+- [ ] Lire la sélection et le résultat édité.
+- [ ] Exporter le WAV édité et créer une copie dans la bibliothèque.
+- [ ] Vérifier que l'original reste intact et que la copie éditée peut être sauvegardée/restaurée.
+- [ ] Passer de A à B et confirmer que les états d'édition sont indépendants.
+- [ ] Vérifier le refus propre au-delà de 128 Mio par tampon.
+- [ ] Vérifier le plafond agrégé de 256 Mio et l'éviction contrôlée de snapshots d'historique.
+- [ ] Utiliser **Libérer mémoire** et confirmer la disparition de l'édition non exportée.
+
+### MIDI / SysEx
+
+- [ ] Tester les trames Sound synthétiques A4 et Digitone reconnues.
+- [ ] Vérifier le rejet des mauvais modèles, longueurs, préfixes, checksums et payloads invalides.
+- [ ] Confirmer qu'un message non reconnu reste non transférable.
+- [ ] Vérifier la correspondance entre modèle de trame et cible choisie.
+- [ ] Ne réaliser les essais matériels qu'avec sauvegarde, message connu et destination sans risque.
+
+### Persistance
+
+- [ ] Sauvegarder la bibliothèque dans IndexedDB.
+- [ ] Recharger la page depuis la même origine et restaurer les données.
+- [ ] Vérifier les blobs source, captures, métadonnées, favoris et liens audio.
+- [ ] Vérifier le comportement lorsque le stockage est indisponible ou quota atteint.
+
+## Essais matériels
+
+À documenter séparément pour chaque essai : modèle exact, révision matérielle si connue, firmware, système, navigateur, interface MIDI/audio, routage, fichier de test non sensible et résultat observé. Ne jamais assimiler un test synthétique ou logiciel à un essai sur Analog Four ou Digitone.
+
+## Rapport de validation
+
+Pour chaque résultat, indiquer **PASS** (contrôle exécuté et résultat conforme), **FAIL** (anomalie reproduite), **NOT RUN** (non exécuté) ou **NOT APPLICABLE** (sans rapport avec l'environnement testé). Joindre les logs expurgés et l'identifiant du commit testé. Éviter les affirmations globales du type « fonctionne sur tout le matériel ».
