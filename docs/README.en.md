@@ -1,48 +1,74 @@
 # Elektron SoundLab — Analog Four & Digitone
 
-A local-first sound library, audition workstation and cautious SysEx utility for the Analog Four MKI / Analog Keys and Digitone MK1.
+A local-first sound library, structured inspection utility, A/B audition workstation and visual audio editor for Elektron Analog Four MKI / Analog Keys and Digitone MK1.
 
-[Français](README.fr.md) · [Installation](INSTALLATION.md) · [Limitations](LIMITATIONS.md) · [Testing](TESTING.md) · [Sound SysEx format](SYSEX_SOUND_FORMAT.md) · [Roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md)
+[Français](README.fr.md) · [Installation](INSTALLATION.md) · [Architecture](TECHNICAL_NOTES.md) · [Limitations](LIMITATIONS.md) · [Testing](TESTING.md) · [Sound SysEx format](SYSEX_SOUND_FORMAT.md) · [Roadmap](../ROADMAP.md) · [Changelog](../CHANGELOG.md) · [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md)
 
-> **Version 3.7 — experimental; community testing required.** Independent project, not affiliated with Elektron. SoundLab is not a replacement for Elektron Transfer.
+> **v3.7 — experimental; community validation required.** Independent project, not affiliated with Elektron and not a replacement for Elektron Transfer.
 
-## Quick start
-Open `index.html` in a recent Chromium browser. Audio and local file inspection work without a server. For Web MIDI/SysEx and audio-input capture on Windows, run `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 required), then open `http://localhost:8765`.
+## Overview
+
+SoundLab is a standalone HTML/CSS/JavaScript browser application for organizing, inspecting and auditioning files associated with the Analog Four MKI / Analog Keys and Digitone MK1. It keeps native files, user-provided audio references, generated proxy previews and limited MIDI/SysEx utilities in one local-first workspace. No application server, user account or library upload is required for the local inventory and audio workflows.
 
 ## Features
-- Inventory .afsnd, .dnsnd, .syx, supported audio, ZIP archives and project files.
-- Extract accessible AFSND manifests and tags.
-- Structured inspection of A4 / Digitone Sound SysEx frames: model, slot, name, tags, checksum and length.
-- Browser audio playback, analog/FM/percussion proxy synthesis and WAV export.
-- Link imported audio files or direct machine input captures to native sounds.
-- **A/B audition**: A plays the real linked recording/capture; B plays the deterministic native-sound proxy. WAV export follows the active mode.
-- Audio inspector: duration, sample rate, channel count and sampled peak/RMS estimates.
-- Waveform zoom and horizontal navigation; separate monitoring gain.
-- Visual audio editor: mouse/touch time selection, hand-drawn gain envelope, gain, fades, −1 dBFS normalization, reverse, silence, trim, undo/redo and selection playback.
-- Export the edited result as WAV or create a new edited copy in the library without overwriting the imported source.
-- Filtering, favourites, sequential audition, JSON inventory and MIDI input monitoring.
-- Queue only recognized, validated Sound SysEx frames, with an exact match between the message model and selected target. Other SysEx messages remain non-transferable.
-- Optional IndexedDB persistence for imported files, metadata, favourites, audio references and captured audio.
 
-## A/B comparison
-After linking an imported recording or recording the instrument's audio output directly, use **A · Real capture** to audition that actual audio and **B · Proxy** to hear SoundLab's generated approximation. A direct capture is preferred for A; otherwise the linked audio file is used. B is enabled only for native AFSND/DNSND items.
+- **Library**: import and inventory `.afsnd`, `.dnsnd`, `.syx`, browser-supported audio, ZIP archives and recognized project files.
+- **Inspection**: conservative extraction of accessible AFSND manifests/tags and structured inspection of one recognized Sound SysEx subtype (model, slot, name, tags, length and checksum).
+- **Audition**: real audio playback and deterministic generic proxy rendering for native sounds.
+- **A/B comparison**: A uses a real instrument capture or linked audio file; B uses SoundLab's generated proxy. WAV export follows the active source.
+- **Audio inspector**: duration, sample rate, channel count, sampled peak/RMS estimates and waveform navigation.
+- **Visual editor (v3.7)**: mouse/touch time selection, hand-drawn gain envelope, gain, fades, −1 dBFS normalization, reverse, silence, trim, selection playback, undo/redo and WAV export.
+- **Non-destructive copies**: create a new edited WAV library item without overwriting the imported source or recording.
+- **Library utilities**: filtering, favourites, sequential audition, JSON inventory and optional local IndexedDB persistence.
+- **MIDI/SysEx**: MIDI input monitoring and queueing restricted to recognized, valid Sound frames matching the declared target model.
 
-Raw SysEx is data, not sound, and is never given an arbitrary proxy tone. If a SysEx item has a linked recording, only that real audio can be played in A mode.
+## Quick start
 
-## Local persistence
-Use **Save locally**, **Restore** and **Delete backup** to manage the browser's IndexedDB copy. No files are uploaded. Restore from the same origin and browser profile. Clearing site data or the browser profile may delete this local copy; retain original source files and independent backups.
+Clone or download the repository, or download a portable ZIP from a successful GitHub Actions run. Open `index.html` in a recent Chrome or Edge browser and import audio or sound libraries. For Web MIDI/SysEx and audio-input capture on Windows, run `scripts/Lancer_WebMIDI_Chrome_Edge.bat` (Python 3 required), then open `http://localhost:8765`. Grant browser permissions deliberately and check the selected audio/MIDI devices. See the [installation guide](INSTALLATION.md).
+
+## Visual editor memory limits
+
+| Resource | Limit |
+|---|---:|
+| Working buffer per track | 128 MiB |
+| Undo/redo history | 128 MiB |
+| Aggregate working buffers and history per session | 256 MiB |
+
+Edits are session-memory state until exported or copied into the library. The editor changes a private decoded AudioBuffer, not the original imported Blob, capture, or native sound payload. A/reference and B/proxy edit states are isolated.
 
 ## Important limitations
-- Proprietary .afsnd/.dnsnd parameters are not decoded. Proxy playback is an approximation, **not an instrument emulator**. The editor can process proxy audio, but it does not change native preset parameters.
-- The editor uses in-memory AudioBuffer copies: 128 MiB per track, 128 MiB undo history and 256 MiB total across the session. **Release memory** discards the current item's unexported edit after confirmation.
-- Session edits are not permanent backups: export the edited WAV or create a library copy, then save the local library. Creating a WAV copy adds the result to the library and releases the previous working buffer.
-- A-mode audio is a user-provided recording/capture, not a decode of the proprietary patch.
-- Peak/RMS figures are sampled estimates, not exhaustive offline measurements.
-- SysEx inspection extracts Sound metadata only (model, slot, name, tags); it does not decode synthesis parameters.
-- SysEx messages other than recognized individual Sound frames are not offered for sending. Checksum and length checks do not certify hardware compatibility.
-- Elektron Transfer's native USB-MIDI protocol is not implemented. Native .afsnd/.dnsnd containers are not transferred as raw SysEx.
-- Web MIDI queueing does not prove that the instrument received, accepted or stored a dump.
-- Project and firmware transfer are unsupported.
-- IndexedDB is local browser storage, not cloud sync or a guaranteed archival backup.
 
-Read [Limitations](LIMITATIONS.md) and [Testing](TESTING.md) before sending SysEx. Do not publish copyrighted sound banks, firmware, private dumps, serial numbers or personal data.
+- Proprietary synthesis parameters inside `.afsnd` / `.dnsnd` are not decoded. Proxy audio is deterministic approximation, not faithful emulation.
+- Editing B mode changes only the generated proxy waveform; it does not alter the native Elektron preset.
+- Raw SysEx is data, not audio. Only the supported Sound subtype is inspected; synthesis parameters are not decoded.
+- Elektron Transfer's native USB-MIDI protocol, project transfer and firmware transfer are not implemented.
+- Web MIDI `send()` is not a hardware acknowledgement.
+- Automated tests and static checks do not replace real-browser interaction testing or physical Analog Four/Digitone validation.
+
+Read [limitations and safe-use notes](LIMITATIONS.md) before any MIDI/SysEx operation.
+
+## Tests and CI
+
+Automated tests cover parsers, the supported Sound SysEx format, IndexedDB persistence, audio inspection, the visual editor, A/B audition and JavaScript syntax. GitHub Actions runs the checks, builds a portable ZIP and uploads it as a workflow artifact. See the [test plan](TESTING.md) and the repository [Actions tab](https://github.com/Jickssa/SoundLab-A4-DG/actions).
+
+## Project documentation
+
+- [French guide](README.fr.md)
+- [Installation and usage](INSTALLATION.md)
+- [Technical notes and architecture](TECHNICAL_NOTES.md)
+- [Limitations and safety](LIMITATIONS.md)
+- [Test plan](TESTING.md)
+- [Observed Sound SysEx format](SYSEX_SOUND_FORMAT.md)
+- [Roadmap](../ROADMAP.md) and [changelog](../CHANGELOG.md)
+- [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md) · [License](../LICENSE)
+
+## Project status
+
+Version 3.7 is developed on a feature branch and tracked by an open pull request. The features described here refer to that development branch; they are not a certification of the default branch or of physical hardware compatibility.
+
+Repository: https://github.com/Jickssa/SoundLab-A4-DG  
+v3.7 pull request: https://github.com/Jickssa/SoundLab-A4-DG/pull/7
+
+## License and independence
+
+The repository includes the Unlicense. Elektron, Analog Four, Analog Keys and Digitone names are used solely to identify the target products. SoundLab is an independent project and is not developed, endorsed or supported by Elektron.
