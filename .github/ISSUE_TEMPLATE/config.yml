@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Technical limitations / Limites techniques
+    url: https://github.com/Jickssa/SoundLab-A4-DG/blob/main/docs/LIMITATIONS.md
+    about: Read what is and is not currently supported / Vérifier les fonctions prises en charge.

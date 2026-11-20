@@ -1,0 +1,21 @@
+ELEKTRON SOUNDLAB v3.1 — GUIDE FRANÇAIS
+
+OBJET
+Bibliothèque locale et outil de préécoute pour Analog Four MKI / Analog Keys et Digitone MK1.
+
+LANCEMENT
+Ouvrir index.html avec Chrome/Edge. Pour MIDI/SysEx et capture audio sous Windows, lancer scripts/Lancer_WebMIDI_Chrome_Edge.bat (Python 3 requis), puis http://localhost:8765.
+
+FORMATS
+AFSND et DNSND : inspection et aperçu proxy. SYX : séparation des messages F0…F7. ZIP : archives non chiffrées et compression prise en charge. Audio : formats selon codecs du navigateur. AFPRJ/DNPRJ : inventaire uniquement.
+
+PRÉÉCOUTE
+Audio réel : décodage et lecture directe si codec supporté.
+Sound natif : synthèse proxy approximative. Ce n'est ni le décodage des paramètres du patch, ni une émulation du moteur Elektron.
+Écoute fidèle : charger le patch sur la machine puis enregistrer sa sortie audio. L'application peut lier un fichier audio de référence au patch.
+
+TRANSFERT
+Les AFSND/DNSND ne sont pas transférés via le protocole natif Elektron Transfer. Le transfert de projets/firmwares est exclu. Le SysEx est seulement mis en file par Web MIDI ; aucune réception matérielle n'est confirmée. Sauvegarder avant toute opération et préparer un mode de réception/destination sûr.
+
+CONFIDENTIALITÉ
+Les données restent dans l'onglet navigateur. Exporter les inventaires et conserver les originaux. Ne pas publier banques commerciales, dumps privés ou données personnelles.
