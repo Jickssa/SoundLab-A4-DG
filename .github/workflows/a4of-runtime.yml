@@ -1,0 +1,24 @@
+name: A4OF runtime tests
+on:
+  push:
+    paths:
+      - 'research/a4of-runtime-simulator/**'
+      - '.github/workflows/a4of-runtime.yml'
+  pull_request:
+    paths:
+      - 'research/a4of-runtime-simulator/**'
+      - '.github/workflows/a4of-runtime.yml'
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run C11 tests
+        working-directory: research/a4of-runtime-simulator
+        env:
+          CC: ${{ matrix.compiler }}
+        run: make clean test
