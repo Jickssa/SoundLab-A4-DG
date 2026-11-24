@@ -1,11 +1,45 @@
 #include "a4of/event.h"
+
 #include <string.h>
-void a4of_event_queue_init(a4of_event_queue_t*q){if(q)memset(q,0,sizeof(*q));}
-a4of_event_status_t a4of_event_push(a4of_event_queue_t*q,const a4of_event_t*e){
- if(!q||!e)return A4OF_EVENT_ERR_NULL;if(e->type==A4OF_EVENT_NONE||e->type>A4OF_EVENT_STORAGE)return A4OF_EVENT_ERR_ARGUMENT;
- if(q->count==A4OF_EVENT_CAPACITY){q->dropped++;return A4OF_EVENT_ERR_FULL;}
- size_t t=(q->head+q->count)%A4OF_EVENT_CAPACITY;q->events[t]=*e;q->events[t].sequence=q->next_sequence++;q->count++;return A4OF_EVENT_OK;
+
+void a4of_event_queue_init(a4of_event_queue_t *queue) {
+    if (queue != NULL) memset(queue, 0, sizeof(*queue));
 }
-a4of_event_status_t a4of_event_peek(const a4of_event_queue_t*q,a4of_event_t*e){if(!q||!e)return A4OF_EVENT_ERR_NULL;if(!q->count)return A4OF_EVENT_ERR_EMPTY;*e=q->events[q->head];return A4OF_EVENT_OK;}
-a4of_event_status_t a4of_event_pop(a4of_event_queue_t*q,a4of_event_t*e){if(!q||!e)return A4OF_EVENT_ERR_NULL;if(!q->count)return A4OF_EVENT_ERR_EMPTY;*e=q->events[q->head];q->head=(q->head+1u)%A4OF_EVENT_CAPACITY;q->count--;return A4OF_EVENT_OK;}
-size_t a4of_event_count(const a4of_event_queue_t*q){return q?q->count:0u;}
+
+a4of_event_status_t a4of_event_push(a4of_event_queue_t *queue,
+                                    const a4of_event_t *event) {
+    if (queue == NULL || event == NULL) return A4OF_EVENT_ERR_NULL;
+    if (event->type == A4OF_EVENT_NONE || event->type > A4OF_EVENT_STORAGE)
+        return A4OF_EVENT_ERR_ARGUMENT;
+    if (queue->count == A4OF_EVENT_CAPACITY) {
+        ++queue->dropped;
+        return A4OF_EVENT_ERR_FULL;
+    }
+    const size_t tail = (queue->head + queue->count) % A4OF_EVENT_CAPACITY;
+    queue->events[tail] = *event;
+    queue->events[tail].sequence = queue->next_sequence++;
+    ++queue->count;
+    return A4OF_EVENT_OK;
+}
+
+a4of_event_status_t a4of_event_peek(const a4of_event_queue_t *queue,
+                                    a4of_event_t *event) {
+    if (queue == NULL || event == NULL) return A4OF_EVENT_ERR_NULL;
+    if (queue->count == 0u) return A4OF_EVENT_ERR_EMPTY;
+    *event = queue->events[queue->head];
+    return A4OF_EVENT_OK;
+}
+
+a4of_event_status_t a4of_event_pop(a4of_event_queue_t *queue,
+                                   a4of_event_t *event) {
+    if (queue == NULL || event == NULL) return A4OF_EVENT_ERR_NULL;
+    if (queue->count == 0u) return A4OF_EVENT_ERR_EMPTY;
+    *event = queue->events[queue->head];
+    queue->head = (queue->head + 1u) % A4OF_EVENT_CAPACITY;
+    --queue->count;
+    return A4OF_EVENT_OK;
+}
+
+size_t a4of_event_count(const a4of_event_queue_t *queue) {
+    return queue == NULL ? 0u : queue->count;
+}
